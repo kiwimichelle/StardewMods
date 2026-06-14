@@ -1,4 +1,4 @@
-﻿namespace StardewMods.CycleTools.Framework;
+namespace StardewMods.CycleTools.Framework;
 
 using StardewMods.Common.Integrations.GenericModConfigMenu;
 

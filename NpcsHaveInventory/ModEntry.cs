@@ -1,4 +1,4 @@
-﻿namespace StardewMods.NPCsHaveInventory;
+namespace StardewMods.NPCsHaveInventory;
 
 using StardewModdingAPI.Events;
 

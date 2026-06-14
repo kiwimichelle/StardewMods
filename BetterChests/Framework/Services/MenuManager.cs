@@ -14,6 +14,10 @@ using StardewValley.Menus;
 /// <summary>Manages the menu by adding, removing, and filtering items.</summary>
 internal sealed class MenuManager
 {
+    // Use high unique IDs that won't collide with vanilla ItemGrabMenu component IDs.
+    private const int UpArrowId = 88561;
+    private const int DownArrowId = 88562;
+
     private readonly IEventManager eventManager;
     private readonly IIconRegistry iconRegistry;
     private readonly IInputHelper inputHelper;
@@ -78,11 +82,35 @@ internal sealed class MenuManager
     /// <summary>Gets the number of rows of the inventory menu.</summary>
     public int Rows => this.InventoryMenu?.rows ?? 3;
 
-    private ClickableTextureComponent DownArrow =>
-        this.downArrow ??= this.iconRegistry.Icon(VanillaIcon.ArrowDown).Component(IconStyle.Transparent);
+    private ClickableTextureComponent DownArrow
+    {
+        get
+        {
+            if (this.downArrow is not null)
+            {
+                return this.downArrow;
+            }
 
-    private ClickableTextureComponent UpArrow =>
-        this.upArrow ??= this.iconRegistry.Icon(VanillaIcon.ArrowUp).Component(IconStyle.Transparent);
+            this.downArrow = this.iconRegistry.Icon(VanillaIcon.ArrowDown).Component(IconStyle.Transparent);
+            this.downArrow.myID = MenuManager.DownArrowId;
+            return this.downArrow;
+        }
+    }
+
+    private ClickableTextureComponent UpArrow
+    {
+        get
+        {
+            if (this.upArrow is not null)
+            {
+                return this.upArrow;
+            }
+
+            this.upArrow = this.iconRegistry.Icon(VanillaIcon.ArrowUp).Component(IconStyle.Transparent);
+            this.upArrow.myID = MenuManager.UpArrowId;
+            return this.upArrow;
+        }
+    }
 
     /// <summary>Draws overlay components to the SpriteBatch.</summary>
     /// <param name="spriteBatch">The SpriteBatch used to draw the game object.</param>
@@ -179,9 +207,10 @@ internal sealed class MenuManager
             return;
         }
 
-        // Add arrows
-        parent.allClickableComponents?.Add(this.UpArrow);
-        parent.allClickableComponents?.Add(this.DownArrow);
+        // Add arrows — ensure the list exists so arrows are always snappable
+        parent.allClickableComponents ??= [];
+        parent.allClickableComponents.Add(this.UpArrow);
+        parent.allClickableComponents.Add(this.DownArrow);
 
         if (this.InventoryMenu is not null)
         {
@@ -193,13 +222,17 @@ internal sealed class MenuManager
             this.DownArrow.bounds.X = this.InventoryMenu.xPositionOnScreen + this.InventoryMenu.width + 8;
             this.DownArrow.bounds.Y = this.InventoryMenu.inventory[bottomSlot].bounds.Center.Y - (6 * Game1.pixelZoom);
 
-            // Assign Neighbor Ids
+            // Assign bidirectional neighbor IDs for full controller snapping (issue #101)
+            this.UpArrow.myID = MenuManager.UpArrowId;
+            this.DownArrow.myID = MenuManager.DownArrowId;
             this.UpArrow.leftNeighborID = this.InventoryMenu.inventory[topSlot].myID;
-            this.InventoryMenu.inventory[topSlot].rightNeighborID = this.UpArrow.myID;
+            this.UpArrow.downNeighborID = MenuManager.DownArrowId;
+            this.UpArrow.upNeighborID = -1;
+            this.InventoryMenu.inventory[topSlot].rightNeighborID = MenuManager.UpArrowId;
             this.DownArrow.leftNeighborID = this.InventoryMenu.inventory[bottomSlot].myID;
-            this.InventoryMenu.inventory[bottomSlot].rightNeighborID = this.DownArrow.myID;
-            this.UpArrow.downNeighborID = this.DownArrow.myID;
-            this.DownArrow.upNeighborID = this.UpArrow.myID;
+            this.DownArrow.upNeighborID = MenuManager.UpArrowId;
+            this.DownArrow.downNeighborID = -1;
+            this.InventoryMenu.inventory[bottomSlot].rightNeighborID = MenuManager.DownArrowId;
         }
 
         // Add icon
@@ -255,14 +288,17 @@ internal sealed class MenuManager
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels());
+        // Arrow bounds use raw UI coordinates (xPositionOnScreen etc.), so we must use
+        // the raw screen pixel position without the additional ModifyCoordinatesForUIScale
+        // transform. Using ModifyCoordinatesForUIScale on top of GetScaledScreenPixels()
+        // double-applies the UI scale and causes misses at non-100% UI scale (issue #117).
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
         if (this.scrolled > 0 && this.UpArrow.bounds.Contains(cursor))
         {
             this.scrolled--;
             this.inputHelper.Suppress(e.Button);
         }
-
-        if (this.scrolled < this.maxScroll && this.DownArrow.bounds.Contains(cursor))
+        else if (this.scrolled < this.maxScroll && this.DownArrow.bounds.Contains(cursor))
         {
             this.scrolled++;
             this.inputHelper.Suppress(e.Button);

@@ -76,8 +76,11 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
         this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
         this.toolbarIconsIntegration.Api.AddToolbarIcon(
-            this.iconRegistry.Icon(InternalIcon.Stash),
-            I18n.Button_StashToChest_Name());
+            icon.UniqueId,
+            icon.Path,
+            icon.Area,
+            () => I18n.Button_StashToChest_Name(),
+            null);
     }
 
     /// <inheritdoc />
@@ -95,7 +98,6 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         }
 
         this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
-        this.toolbarIconsIntegration.Api.RemoveToolbarIcon(this.iconRegistry.Icon(InternalIcon.Stash));
     }
 
     private void LogTransfer(IStorageContainer from, IStorageContainer to, Dictionary<string, int> amounts)

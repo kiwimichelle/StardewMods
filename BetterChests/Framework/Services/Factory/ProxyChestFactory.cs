@@ -225,6 +225,9 @@ internal sealed class ProxyChestFactory : BaseService<ProxyChestFactory>
         var id = chest.GlobalInventoryId;
         var globalInventory = Game1.player.team.GetOrCreateGlobalInventory(id);
         chest.GlobalInventoryId = null;
+
+        // Clear existing items before restoring to prevent inventory corruption (issue #112)
+        chest.Items.Clear();
         chest.Items.OverwriteWith(globalInventory);
 
         // Clear Global Inventory

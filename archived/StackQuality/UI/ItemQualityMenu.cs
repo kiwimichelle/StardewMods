@@ -1,4 +1,4 @@
-﻿namespace StardewMods.StackQuality.UI;
+namespace StardewMods.StackQuality.UI;
 
 using System;
 using System.Linq;

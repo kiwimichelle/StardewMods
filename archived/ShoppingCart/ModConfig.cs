@@ -1,4 +1,4 @@
-﻿namespace StardewMods.ShoppingCart;
+namespace StardewMods.ShoppingCart;
 
 using System.Globalization;
 using System.Text;

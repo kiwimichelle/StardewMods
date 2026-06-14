@@ -1,4 +1,4 @@
-﻿namespace StardewMods.IsItCake.Framework;
+namespace StardewMods.IsItCake.Framework;
 
 using System;
 using HarmonyLib;

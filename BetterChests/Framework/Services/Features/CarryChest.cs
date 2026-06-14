@@ -94,12 +94,19 @@ internal sealed class CarryChest : BaseFeature<CarryChest>
         int y,
         ref bool __result)
     {
+        // Only process items that are confirmed proxy chests
         if (!__result
-            || !CarryChest.instance.proxyChestFactory.TryGetProxy(__instance, out var chest)
+            || !CarryChest.instance.proxyChestFactory.IsProxy(__instance)
             || !location.Objects.TryGetValue(
                 new Vector2((int)(x / (float)Game1.tileSize), (int)(y / (float)Game1.tileSize)),
                 out var obj)
             || obj is not Chest placedChest)
+        {
+            return;
+        }
+
+        // Use TryGetProxy only after confirming IsProxy, so it never creates a ghost entry
+        if (!CarryChest.instance.proxyChestFactory.TryGetProxy(__instance, out var chest))
         {
             return;
         }

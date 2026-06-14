@@ -1,4 +1,4 @@
-﻿namespace StardewMods.IsItCake;
+namespace StardewMods.IsItCake;
 
 using StardewMods.Common.Helpers;
 using StardewMods.IsItCake.Framework;

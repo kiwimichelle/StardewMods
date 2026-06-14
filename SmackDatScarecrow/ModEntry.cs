@@ -1,4 +1,4 @@
-﻿namespace StardewMods.SmackDatScarecrow;
+namespace StardewMods.SmackDatScarecrow;
 
 using HarmonyLib;
 using Microsoft.Xna.Framework;

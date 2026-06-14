@@ -1,4 +1,4 @@
-﻿namespace StardewMods.PocketSlimes;
+namespace StardewMods.PocketSlimes;
 
 using StardewMods.Common.Helpers;
 using StardewMods.PocketSlimes.Framework;

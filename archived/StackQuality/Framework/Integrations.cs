@@ -1,4 +1,4 @@
-﻿namespace StardewMods.StackQuality.Framework;
+namespace StardewMods.StackQuality.Framework;
 
 using StardewMods.Common.Integrations.ShoppingCart;
 

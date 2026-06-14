@@ -1,4 +1,4 @@
-﻿namespace StardewMods.BetterChests.Framework;
+namespace StardewMods.BetterChests.Framework;
 
 using StardewMods.BetterChests.Framework.Enums;
 using StardewMods.BetterChests.Framework.Interfaces;

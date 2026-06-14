@@ -1,3 +1,3 @@
-﻿namespace StackQuality;
+namespace StackQuality;
 
 public class Class1 { }

@@ -718,10 +718,17 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
             this.Top.Container = this.containerFactory.TryGetOne(top, out var topContainer) ? topContainer : null;
             if (topContainer is not null && this.CurrentMenu is ItemGrabMenu itemGrabMenu)
             {
-                // Relaunch menu once
-                if (depth == 0
-                    && (itemGrabMenu.inventory.highlightMethod?.Target?.GetType() is null
-                        || itemGrabMenu.inventory.highlightMethod?.Target?.GetType() != this.chestsAnywhereType))
+                // Relaunch menu once, but not when Chests Anywhere opened the menu — CA uses its
+                // own highlight methods (ChestContainer, ShippingBinContainer, etc.) and relies on
+                // the exact menu it created; relaunching resets currentlySnappedComponent and
+                // breaks controller navigation (issues #116, #101).
+                var caAssembly = this.chestsAnywhereType?.Assembly;
+                var inventoryTargetAssembly = itemGrabMenu.inventory.highlightMethod?.Target?.GetType()?.Assembly;
+                var grabMenuTargetAssembly = itemGrabMenu.ItemsToGrabMenu.highlightMethod?.Target?.GetType()?.Assembly;
+                var isChestsAnywhereMenu = caAssembly is not null
+                    && (inventoryTargetAssembly == caAssembly || grabMenuTargetAssembly == caAssembly);
+
+                if (depth == 0 && !isChestsAnywhereMenu)
                 {
                     topContainer.ShowMenu();
                     continue;

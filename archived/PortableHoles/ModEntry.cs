@@ -1,4 +1,4 @@
-﻿namespace StardewMods.PortableHoles;
+namespace StardewMods.PortableHoles;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

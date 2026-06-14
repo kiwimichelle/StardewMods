@@ -1,4 +1,4 @@
-﻿namespace StardewMods.HelpfulSpouses.Framework.Models;
+namespace StardewMods.HelpfulSpouses.Framework.Models;
 
 using StardewMods.HelpfulSpouses.Framework.Enums;
 using StardewMods.HelpfulSpouses.Framework.Interfaces;

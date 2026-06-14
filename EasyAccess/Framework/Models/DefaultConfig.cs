@@ -1,4 +1,4 @@
-﻿namespace StardewMods.EasyAccess.Framework.Models;
+namespace StardewMods.EasyAccess.Framework.Models;
 
 using StardewMods.EasyAccess.Framework.Interfaces;
 

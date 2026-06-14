@@ -1,4 +1,4 @@
-﻿namespace StardewMods.ShoppingCart.UI;
+namespace StardewMods.ShoppingCart.UI;
 
 using System.Drawing;
 using Microsoft.Xna.Framework.Graphics;

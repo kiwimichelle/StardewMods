@@ -86,15 +86,18 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
     /// <inheritdoc />
     protected override void Activate()
     {
-        if (!this.toolbarIconsIntegration.IsLoaded)
+        if (!this.toolbarIconsIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Debug, out var icon))
         {
             return;
         }
 
         this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
         this.toolbarIconsIntegration.Api.AddToolbarIcon(
-            this.iconRegistry.Icon(InternalIcon.Debug),
-            I18n.Button_Debug_Name());
+            icon.UniqueId,
+            icon.Path,
+            icon.Area,
+            () => I18n.Button_Debug_Name(),
+            null);
     }
 
     /// <inheritdoc />
@@ -106,12 +109,13 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
         }
 
         this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
-        this.toolbarIconsIntegration.Api.RemoveToolbarIcon(this.iconRegistry.Icon(InternalIcon.Debug));
     }
 
     private void OnIconPressed(IIconPressedEventArgs e)
     {
-        if (e.Id != this.iconRegistry.Icon(InternalIcon.Debug).Id || Game1.activeClickableMenu?.readyToClose() == false)
+        if (!this.iconRegistry.TryGetIcon(InternalIcon.Debug, out var icon)
+            || e.Id != icon.Id
+            || Game1.activeClickableMenu?.readyToClose() == false)
         {
             return;
         }

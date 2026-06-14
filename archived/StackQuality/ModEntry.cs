@@ -1,4 +1,4 @@
-﻿namespace StardewMods.StackQuality;
+namespace StardewMods.StackQuality;
 
 using StardewModdingAPI.Events;
 using StardewMods.Common.Helpers;

@@ -1,4 +1,4 @@
-﻿namespace StardewMods.CycleTools;
+namespace StardewMods.CycleTools;
 
 using StardewModdingAPI.Utilities;
 

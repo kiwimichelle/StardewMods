@@ -1,4 +1,4 @@
-﻿namespace StardewMods.BetterChests.Framework.Services.Features;
+namespace StardewMods.BetterChests.Framework.Services.Features;
 
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models;

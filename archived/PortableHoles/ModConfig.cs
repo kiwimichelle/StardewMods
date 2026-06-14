@@ -1,4 +1,4 @@
-﻿namespace StardewMods.PortableHoles;
+namespace StardewMods.PortableHoles;
 
 using System.Globalization;
 using System.Text;

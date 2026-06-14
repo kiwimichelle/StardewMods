@@ -1,4 +1,4 @@
-﻿namespace StardewMods.HelpfulSpouses;
+namespace StardewMods.HelpfulSpouses;
 
 using HarmonyLib;
 using SimpleInjector;

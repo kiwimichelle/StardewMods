@@ -1,4 +1,4 @@
-﻿namespace StardewMods.PocketSlimes.Framework;
+namespace StardewMods.PocketSlimes.Framework;
 
 using System;
 using HarmonyLib;

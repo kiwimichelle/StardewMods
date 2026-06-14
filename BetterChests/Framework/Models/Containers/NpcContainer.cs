@@ -25,13 +25,20 @@ internal sealed class NpcContainer : BaseContainer<NPC>
     public override int Capacity => this.chest.GetActualCapacity();
 
     /// <inheritdoc />
-    public override bool IsAlive => this.Source.TryGetTarget(out _);
+    /// <remarks>
+    /// Also checks that the NPC has a non-null currentLocation. When a horse with a saddlebag
+    /// leaves the current area the NPC object stays alive in memory but currentLocation becomes
+    /// null, which would otherwise cause a NullReferenceException in container enumeration and
+    /// block all chest access until a full game restart (issue #110).
+    /// </remarks>
+    public override bool IsAlive =>
+        this.Source.TryGetTarget(out var npc) && npc.currentLocation is not null;
 
     /// <inheritdoc />
     public override IInventory Items => this.chest.GetItemsForPlayer();
 
     /// <inheritdoc />
-    public override GameLocation Location => this.Npc.currentLocation;
+    public override GameLocation Location => this.Npc.currentLocation!;
 
     /// <inheritdoc />
     public override ModDataDictionary ModData => this.Npc.modData;

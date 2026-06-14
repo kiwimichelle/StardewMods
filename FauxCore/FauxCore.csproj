@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Name>FauxCore</Name>
     <Description>Framework that provides shared functionality for all of my mods.</Description>
@@ -17,15 +17,19 @@
     <DefineConstants>IS_FAUXCORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0"/>
-    <PackageReference Include="Pidgin" Version="3.3.0"/>
-    <PackageReference Include="SimpleInjector" Version="5.5.0"/>
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1" />
+    <PackageReference Include="Pidgin" Version="3.4.0" />
+    <PackageReference Include="SimpleInjector" Version="5.5.2" />
     <Reference Include="HarmonyLib">
       <HintPath>$(GamePath)\smapi-internal\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.14.1" required="false"/>
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.14.1" required="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
 </Project>

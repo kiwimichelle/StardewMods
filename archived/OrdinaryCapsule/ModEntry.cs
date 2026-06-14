@@ -1,4 +1,4 @@
-﻿namespace StardewMods.OrdinaryCapsule;
+namespace StardewMods.OrdinaryCapsule;
 
 using System.Collections.Generic;
 using System.Linq;

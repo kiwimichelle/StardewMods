@@ -1,4 +1,4 @@
-﻿namespace StardewMods.BetterChests.Framework.Models;
+namespace StardewMods.BetterChests.Framework.Models;
 
 using System.Globalization;
 using System.Text;

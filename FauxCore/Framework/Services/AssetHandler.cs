@@ -100,6 +100,7 @@ internal sealed class AssetHandler : BaseAssetHandler, IAssetHandlerExtension, I
         }
     }
 
+
     /// <inheritdoc />
     public void AddAsset(string path, IRawTextureData data)
     {

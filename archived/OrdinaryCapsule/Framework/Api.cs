@@ -1,4 +1,4 @@
-﻿namespace StardewMods.OrdinaryCapsule.Framework;
+namespace StardewMods.OrdinaryCapsule.Framework;
 
 using System.Linq;
 using StardewMods.Common.Integrations.OrdinaryCapsule;

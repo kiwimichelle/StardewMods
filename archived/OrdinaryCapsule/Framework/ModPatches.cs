@@ -1,4 +1,4 @@
-﻿namespace StardewMods.OrdinaryCapsule.Framework;
+namespace StardewMods.OrdinaryCapsule.Framework;
 
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿namespace StardewMods.OrdinaryCapsule;
+namespace StardewMods.OrdinaryCapsule;
 
 using System.Globalization;
 using System.Text;

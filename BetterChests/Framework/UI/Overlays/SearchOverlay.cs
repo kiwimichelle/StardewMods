@@ -1,4 +1,4 @@
-﻿namespace StardewMods.BetterChests.Framework.UI.Overlays;
+namespace StardewMods.BetterChests.Framework.UI.Overlays;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;

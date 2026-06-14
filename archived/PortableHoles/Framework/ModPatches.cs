@@ -1,4 +1,4 @@
-﻿namespace StardewMods.PortableHoles.Framework;
+namespace StardewMods.PortableHoles.Framework;
 
 using System;
 using System.Collections.Generic;
