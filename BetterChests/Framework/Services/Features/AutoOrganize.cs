@@ -43,61 +43,52 @@ internal sealed class AutoOrganize : BaseFeature<AutoOrganize>
 
     private void OrganizeAll()
     {
-        var containerGroupsTo = this
+        // Sort once by priority descending; avoids two Dictionary allocations and sparse integer loops
+        var sorted = this
             .containerFactory.GetAll(container => container.AutoOrganize == FeatureOption.Enabled)
-            .GroupBy(container => (int)container.StashToChestPriority)
-            .ToDictionary(containerGroup => containerGroup.Key, group => group.ToList());
+            .OrderByDescending(container => container.StashToChestPriority)
+            .ToList();
 
-        var containerGroupsFrom = new Dictionary<int, List<IStorageContainer>>();
-        foreach (var (priority, containers) in containerGroupsTo)
+        if (sorted.Count == 0)
         {
-            containerGroupsFrom.Add(priority, [.. containers]);
+            return;
         }
 
-        var topPriority = containerGroupsTo.Keys.Max();
-        var bottomPriority = containerGroupsTo.Keys.Min();
-
-        for (var priorityTo = topPriority; priorityTo >= bottomPriority; --priorityTo)
+        // Transfer from lower-priority containers into higher-priority ones
+        for (var toIdx = 0; toIdx < sorted.Count; toIdx++)
         {
-            if (!containerGroupsTo.TryGetValue(priorityTo, out var containersTo))
+            var containerTo = sorted[toIdx];
+            for (var fromIdx = toIdx + 1; fromIdx < sorted.Count; fromIdx++)
             {
-                continue;
-            }
+                var containerFrom = sorted[fromIdx];
 
-            foreach (var containerTo in containersTo)
-            {
-                for (var priorityFrom = priorityTo - 1; priorityFrom >= bottomPriority; --priorityFrom)
+                // Only transfer when priorities actually differ
+                if (containerFrom.StashToChestPriority >= containerTo.StashToChestPriority)
                 {
-                    if (!containerGroupsFrom.TryGetValue(priorityFrom, out var containersFrom))
-                    {
-                        continue;
-                    }
-
-                    foreach (var containerFrom in containersFrom)
-                    {
-                        if (!this.containerHandler.Transfer(containerFrom, containerTo, out var amounts))
-                        {
-                            continue;
-                        }
-
-                        foreach (var (name, amount) in amounts)
-                        {
-                            if (amount > 0)
-                            {
-                                Log.Info(
-                                    "{0}: {{ Item: {1}, Quantity: {2}, From: {3}, To: {4} }}",
-                                    this.Id,
-                                    name,
-                                    amount,
-                                    containerFrom,
-                                    containerTo);
-                            }
-                        }
-                    }
+                    continue;
                 }
 
-                ItemGrabMenu.organizeItemsInList(containerTo.Items);
+                if (!this.containerHandler.Transfer(containerFrom, containerTo, out var amounts))
+                {
+                    continue;
+                }
+
+                foreach (var (name, amount) in amounts)
+                {
+                    if (amount > 0)
+                    {
+                        Log.Info(
+                            "{0}: {{ Item: {1}, Quantity: {2}, From: {3}, To: {4} }}",
+                            this.Id,
+                            name,
+                            amount,
+                            containerFrom,
+                            containerTo);
+                    }
+                }
             }
+
+            ItemGrabMenu.organizeItemsInList(containerTo.Items);
         }
     }
 }

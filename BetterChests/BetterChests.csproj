@@ -28,9 +28,9 @@
   <ItemGroup>
     <SMAPIDependency Include="furyx639.FauxCore" Version="1.2.2" required="true" />
     <SMAPIDependency Include="furyx639.ToolbarIcons" Version="3.2.0" required="false" />
-    <SMAPIDependency Include="leclair.bettercrafting" Version="2.14.0" required="false" />
-    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.14.1" required="false" />
-    <SMAPIDependency Include="Pathoschild.Automate" Version="2.3.1" required="false" />
+    <SMAPIDependency Include="leclair.bettercrafting" Version="2.18.0" required="false" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.16.0" required="false" />
+    <SMAPIDependency Include="Pathoschild.Automate" Version="2.6.1" required="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="JetBrains.Annotations" Version="2025.2.4" />

@@ -223,39 +223,28 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             return;
         }
 
-        var containerGroups =
-            this
-                .containerFactory.GetAll(Predicate)
-                .GroupBy(container => container.StashToChestPriority)
-                .ToDictionary(group => group.Key, group => group.ToList());
+        // Sort once by priority descending; avoids building a Dictionary then iterating sparse integer range
+        var containersTo = this
+            .containerFactory.GetAll(Predicate)
+            .OrderByDescending(container => container.StashToChestPriority)
+            .ToList();
 
-        if (!containerGroups.Any())
+        if (containersTo.Count == 0)
         {
             Game1.showRedMessage(I18n.Alert_StashToChest_NoEligible());
             return;
         }
 
-        var topPriority = containerGroups.Keys.Max();
-        var bottomPriority = containerGroups.Keys.Min();
         var stashedAny = false;
-
-        for (var priority = topPriority; priority >= bottomPriority; --priority)
+        foreach (var containerTo in containersTo)
         {
-            if (!containerGroups.TryGetValue(priority, out var containersTo))
+            if (!this.containerHandler.Transfer(containerFrom, containerTo, out var amounts))
             {
                 continue;
             }
 
-            foreach (var containerTo in containersTo)
-            {
-                if (!this.containerHandler.Transfer(containerFrom, containerTo, out var amounts))
-                {
-                    continue;
-                }
-
-                stashedAny = true;
-                this.LogTransfer(containerFrom, containerTo, amounts);
-            }
+            stashedAny = true;
+            this.LogTransfer(containerFrom, containerTo, amounts);
         }
 
         if (!stashedAny)

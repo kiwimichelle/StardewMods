@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="All Except Common and archived" pattern="file:*.cs&amp;&amp;!file:Common/Services/Integrations//*&amp;&amp;!file:archived//*" />
-</component>

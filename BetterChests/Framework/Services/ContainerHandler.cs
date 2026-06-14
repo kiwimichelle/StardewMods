@@ -252,8 +252,9 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
             {
                 var hasItem = to.Items.ContainsId(item.QualifiedItemId);
 
-                // Stop iterating if destination container is already at capacity
-                if (to.Items.CountItemStacks() >= to.Capacity && !hasItem)
+                // Stop iterating if destination container is already at capacity.
+                // CountItemStacks() is O(n) so only call it when we actually need a new slot.
+                if (!hasItem && to.Items.CountItemStacks() >= to.Capacity)
                 {
                     return false;
                 }
@@ -296,7 +297,7 @@ internal sealed class ContainerHandler : BaseService<ContainerHandler>
                 return true;
             });
 
-        if (items.Any())
+        if (items.Count > 0)
         {
             amounts = items;
             return true;

@@ -185,13 +185,17 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
     {
         if (Context.IsPlayerFree && this.Config.Controls.AccessChests.JustPressed())
         {
-            // Access First Chest
+            // Access First Chest — find the highest-priority group, then the alphabetically first within it
             this.inputHelper.SuppressActiveKeybinds(this.Config.Controls.AccessChests);
-            this.containerFactory
-                .GetAll(this.Predicate)
-                .GroupBy(container => container.AccessChestPriority)
-                .OrderByDescending(kvp => kvp.Key)
-                .FirstOrDefault()?
+            var allContainers = this.containerFactory.GetAll(this.Predicate).ToList();
+            if (allContainers.Count == 0)
+            {
+                return;
+            }
+
+            var topPriority = allContainers.Max(c => c.AccessChestPriority);
+            allContainers
+                .Where(c => c.AccessChestPriority == topPriority)
                 .MinBy(c => c.ToString())?
                 .ShowMenu();
 

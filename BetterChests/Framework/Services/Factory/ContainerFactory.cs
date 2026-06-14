@@ -704,26 +704,24 @@ internal sealed class ContainerFactory
         Queue<IStorageContainer> containerQueue,
         Func<IStorageContainer, bool>? predicate = default)
     {
-        var foundLocations = new HashSet<GameLocation>();
-        var locationQueue = new Queue<GameLocation>();
-
-        locationQueue.Enqueue(Game1.currentLocation);
-
-        foreach (var location in Game1.locations)
+        // Collect all locations via Utility.ForEachLocation so the game handles instanced
+        // building indoors, future location structure changes, and deduplication automatically.
+        var allLocations = new List<GameLocation>();
+        Utility.ForEachLocation(location =>
         {
-            if (!location.Equals(Game1.currentLocation))
-            {
-                locationQueue.Enqueue(location);
-            }
+            allLocations.Add(location);
+            return true;
+        });
+
+        // Visit currentLocation first so nearby chests appear before remote ones.
+        if (Game1.currentLocation is not null)
+        {
+            allLocations.Remove(Game1.currentLocation);
+            allLocations.Insert(0, Game1.currentLocation);
         }
 
-        while (locationQueue.TryDequeue(out var location))
+        foreach (var location in allLocations)
         {
-            if (!foundLocations.Add(location))
-            {
-                continue;
-            }
-
             foreach (var container in this.GetAll(location, predicate))
             {
                 if (!foundContainers.Add(container))
@@ -733,14 +731,6 @@ internal sealed class ContainerFactory
 
                 containerQueue.Enqueue(container);
                 yield return container;
-            }
-
-            foreach (var building in location.buildings)
-            {
-                if (building.GetIndoorsType() == IndoorsType.Instanced)
-                {
-                    locationQueue.Enqueue(building.GetIndoors());
-                }
             }
         }
     }

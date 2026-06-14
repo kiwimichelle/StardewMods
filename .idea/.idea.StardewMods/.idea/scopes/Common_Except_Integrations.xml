@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="Common Except Integrations" pattern="file:Common//*&amp;&amp;!file:Common/Services/Integrations/*//*" />
-</component>

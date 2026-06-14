@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.32014.148
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.11903.348 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AD9704D5-65CD-48E6-AF6F-8CEE74477ADD}"
 	ProjectSection(SolutionItems) = preProject
@@ -19,19 +19,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = ".Common", "Common\.Common.s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterChests", "BetterChests\BetterChests.csproj", "{8CEAB902-D2AB-4802-82E9-F4A6AB718BF4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyAccess", "EasyAccess\EasyAccess.csproj", "{774ACD31-6138-4707-A747-8C8E35519FC3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelpfulSpouses", "HelpfulSpouses\HelpfulSpouses.csproj", "{AA4CEF05-E3DA-45B8-80AD-E54BA33CE950}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FauxCore", "FauxCore\FauxCore.csproj", "{86D15779-C8A5-49C9-8ECD-530298893A52}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindAnything", "FindAnything\FindAnything.csproj", "{83CE3B0E-6A1F-4477-93AE-AFFA9FFDF9CC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NpcsHaveInventory", "NpcsHaveInventory\NpcsHaveInventory.csproj", "{7B668D0C-48B2-4181-BBAE-9A3AF459DAF6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackQuality", "StackQuality\StackQuality.csproj", "{D3827BF5-FF59-4B57-8BF6-AEE3BDE3A138}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PocketSlimes", "PocketSlimes\PocketSlimes.csproj", "{C7F2932C-0858-48F9-A079-043F8FD5067C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,29 +31,10 @@ Global
 		{8CEAB902-D2AB-4802-82E9-F4A6AB718BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CEAB902-D2AB-4802-82E9-F4A6AB718BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8CEAB902-D2AB-4802-82E9-F4A6AB718BF4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{774ACD31-6138-4707-A747-8C8E35519FC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{774ACD31-6138-4707-A747-8C8E35519FC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{774ACD31-6138-4707-A747-8C8E35519FC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{774ACD31-6138-4707-A747-8C8E35519FC3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA4CEF05-E3DA-45B8-80AD-E54BA33CE950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA4CEF05-E3DA-45B8-80AD-E54BA33CE950}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA4CEF05-E3DA-45B8-80AD-E54BA33CE950}.Release|Any CPU.Build.0 = Release|Any CPU
 		{86D15779-C8A5-49C9-8ECD-530298893A52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{86D15779-C8A5-49C9-8ECD-530298893A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86D15779-C8A5-49C9-8ECD-530298893A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86D15779-C8A5-49C9-8ECD-530298893A52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83CE3B0E-6A1F-4477-93AE-AFFA9FFDF9CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83CE3B0E-6A1F-4477-93AE-AFFA9FFDF9CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83CE3B0E-6A1F-4477-93AE-AFFA9FFDF9CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B668D0C-48B2-4181-BBAE-9A3AF459DAF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B668D0C-48B2-4181-BBAE-9A3AF459DAF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B668D0C-48B2-4181-BBAE-9A3AF459DAF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3827BF5-FF59-4B57-8BF6-AEE3BDE3A138}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3827BF5-FF59-4B57-8BF6-AEE3BDE3A138}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3827BF5-FF59-4B57-8BF6-AEE3BDE3A138}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C7F2932C-0858-48F9-A079-043F8FD5067C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7F2932C-0858-48F9-A079-043F8FD5067C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7F2932C-0858-48F9-A079-043F8FD5067C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,14 +43,8 @@ Global
 		SolutionGuid = {872F34DC-E657-4732-ABCE-D08C2298FB75}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Common\Common.projitems*{774acd31-6138-4707-a747-8c8e35519fc3}*SharedItemsImports = 5
-		Common\Common.projitems*{7b668d0c-48b2-4181-bbae-9a3af459daf6}*SharedItemsImports = 5
-		Common\Common.projitems*{83ce3b0e-6a1f-4477-93ae-affa9ffdf9cc}*SharedItemsImports = 5
 		Common\Common.projitems*{86d15779-c8a5-49c9-8ecd-530298893a52}*SharedItemsImports = 5
 		Common\Common.projitems*{8ceab902-d2ab-4802-82e9-f4a6ab718bf4}*SharedItemsImports = 5
-		Common\Common.projitems*{aa4cef05-e3da-45b8-80ad-e54ba33ce950}*SharedItemsImports = 5
-		Common\Common.projitems*{c7f2932c-0858-48f9-a079-043f8fd5067c}*SharedItemsImports = 5
-		Common\Common.projitems*{d3827bf5-ff59-4b57-8bf6-aee3bde3a138}*SharedItemsImports = 5
 		Common\Common.projitems*{eecb6271-93fd-4172-bfdd-33e3f169f8e7}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

@@ -175,7 +175,7 @@ internal class SearchMenu : BaseMenu
     /// <returns>The items to display.</returns>
     protected virtual List<Item> GetItems() =>
         this.Expression is null
-            ? Array.Empty<Item>().ToList()
+            ? []
             : ItemRepository.GetItems(this.Expression.Equals).ToList();
 
     /// <summary>Highlight the item.</summary>
