@@ -1298,6 +1298,24 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
     {
         this.InitializeDefaultOptions(this.Config.DefaultOptions);
         this.InitializeStorageTypes(this.Config);
+
+        // Repair corrupted InventoryTabList: if any label looks like a search term
+        // (contains "category_"), the config.json was saved with Label/SearchTerm swapped.
+        // Reset to defaults so tabs display correctly.
+        var defaultTabs = this.GetDefault().InventoryTabList;
+        var tabList = this.Config.InventoryTabList;
+        var corrupted = tabList.Count == 0
+            || tabList.Any(tab => tab.Label.Contains("category_", StringComparison.OrdinalIgnoreCase)
+                || string.IsNullOrWhiteSpace(tab.Label));
+
+        if (corrupted)
+        {
+            this.simpleLogging.Warn(
+                "InventoryTabList labels appear corrupted in config.json. Resetting to defaults.");
+            tabList.Clear();
+            tabList.AddRange(defaultTabs);
+        }
+
         this.simpleLogging.Trace("Config changed:\n{0}", e.Config);
     }
 
@@ -1307,5 +1325,9 @@ internal sealed class ConfigManager : ConfigManager<DefaultConfig>, IModConfig
         {
             this.SetupMainConfig();
         }
+
+        // Fire the initial ConfigChangedEvent so all BaseFeature instances activate themselves.
+        // Without this, ShouldBeActive is never checked and no feature ever calls Activate().
+        this.Init();
     }
 }

@@ -87,7 +87,14 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
                 AccessTools.DeclaredMethod(
                     typeof(HslColorPicker),
                     nameof(HslColorPicker.DiscreteColorPicker_receiveLeftClick_prefix)),
-                PatchType.Prefix));
+                PatchType.Prefix),
+            new SavedPatch(
+                AccessTools.Method(typeof(ItemGrabMenu), nameof(ItemGrabMenu.CanHaveColorPicker)),
+                AccessTools.DeclaredMethod(
+                    typeof(HslColorPicker),
+                    nameof(HslColorPicker.ItemGrabMenu_CanHaveColorPicker_postfix)),
+                PatchType.Postfix,
+                "ItemGrabMenu.CanHaveColorPicker"));
     }
 
     /// <inheritdoc />
@@ -115,6 +122,19 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
         // Patches
         this.patchManager.Unpatch(this.UniqueId);
+    }
+
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
+    [SuppressMessage("StyleCop", "SA1313", Justification = "Harmony")]
+    private static void ItemGrabMenu_CanHaveColorPicker_postfix(ItemGrabMenu __instance, ref bool __result)
+    {
+        // SDV 1.6 added CanHaveColorPicker() which returns false for certain chest types,
+        // preventing chestColorPicker from being created and hiding the color button entirely.
+        // Force it true for any player-owned chest so our HslColorPicker can take over.
+        if (!__result && __instance.sourceItem is Chest { playerChest.Value: true })
+        {
+            __result = true;
+        }
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Harmony")]
