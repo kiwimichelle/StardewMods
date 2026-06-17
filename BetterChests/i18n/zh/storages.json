@@ -1,14 +1,14 @@
 {
-  "storage.Default.name": "Default Storage",
-  "storage.Default.tooltip": "Config options that apply to every storage.",
-  "storage.Fridge.name": "Fridge",
-  "storage.Fridge.tooltip": "Storage in the farmhouse for cooking ingredients.",
-  "storage.Island-Fridge.name": "Island Fridge",
-  "storage.Island-Fridge.tooltip": "Storage in the island farmhouse for cooking ingredients.",
-  "storage.Backpack.name": "Backpack",
-  "storage.Backpack.tooltip": "Storage in the farmer's backpack.",
-  "storage.Saddlebag.name": "Saddle Bag",
-  "storage.Saddlebag.tooltip": "Storage on the horse.",
-  "storage.Other.name": "Other",
-  "storage.Other.tooltip": "An unknown storage type."
+  "storage.Default.name": "默认存储",
+  "storage.Default.tooltip": "适用于所有存储容器的通用配置选项。",
+  "storage.Fridge.name": "冰箱",
+  "storage.Fridge.tooltip": "农舍厨房里的冰箱，用于储存烹饪材料。",
+  "storage.Island-Fridge.name": "姜岛冰箱",
+  "storage.Island-Fridge.tooltip": "姜岛农舍里的冰箱，用于储存烹饪材料。",
+  "storage.Backpack.name": "背包",
+  "storage.Backpack.tooltip": "玩家随身携带的背包。",
+  "storage.Saddlebag.name": "马鞍袋",
+  "storage.Saddlebag.tooltip": "挂在马身上的储物袋。",
+  "storage.Other.name": "其他",
+  "storage.Other.tooltip": "未被识别的存储类型。"
 }
