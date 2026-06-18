@@ -11,7 +11,7 @@ using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.FauxCore;
-using StardewMods.Common.Services.Integrations.ToolbarIcons;
+using StardewMods.Common.Services.Integrations.IconicFramework;
 using StardewValley.Locations;
 using StardewValley.Menus;
 
@@ -24,7 +24,8 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     private readonly IIconRegistry iconRegistry;
     private readonly IInputHelper inputHelper;
     private readonly MenuHandler menuHandler;
-    private readonly ToolbarIconsIntegration toolbarIconsIntegration;
+    private readonly IconicFrameworkIntegration iconicFrameworkIntegration;
+    private string? registeredIconId;
 
     /// <summary>Initializes a new instance of the <see cref="StashToChest" /> class.</summary>
     /// <param name="assetHandler">Dependency used for handling assets.</param>
@@ -35,7 +36,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
-    /// <param name="toolbarIconsIntegration">Dependency for Toolbar Icons integration.</param>
+    /// <param name="iconicFrameworkIntegration">Dependency for Toolbar Icons integration.</param>
     public StashToChest(
         AssetHandler assetHandler,
         ContainerFactory containerFactory,
@@ -45,7 +46,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         IInputHelper inputHelper,
         MenuHandler menuHandler,
         IModConfig modConfig,
-        ToolbarIconsIntegration toolbarIconsIntegration)
+        IconicFrameworkIntegration iconicFrameworkIntegration)
         : base(eventManager, modConfig)
     {
         this.assetHandler = assetHandler;
@@ -54,7 +55,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         this.iconRegistry = iconRegistry;
         this.inputHelper = inputHelper;
         this.menuHandler = menuHandler;
-        this.toolbarIconsIntegration = toolbarIconsIntegration;
+        this.iconicFrameworkIntegration = iconicFrameworkIntegration;
     }
 
     /// <inheritdoc />
@@ -69,18 +70,19 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         this.Events.Subscribe<RenderingActiveMenuEventArgs>(this.OnRenderingActiveMenu);
 
         // Integrations
-        if (!this.toolbarIconsIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Stash, out var icon))
+        if (!this.iconicFrameworkIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Stash, out var icon))
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
-        this.toolbarIconsIntegration.Api.AddToolbarIcon(
-            icon.UniqueId,
+        this.registeredIconId = icon.UniqueId;
+        this.iconicFrameworkIntegration.Api.Subscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.AddToolbarIcon(
+            this.registeredIconId,
             icon.Path,
             icon.Area,
             () => I18n.Button_StashToChest_Name(),
-            null);
+            () => I18n.Button_StashToChest_Name());
     }
 
     /// <inheritdoc />
@@ -92,12 +94,13 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
         this.Events.Unsubscribe<RenderingActiveMenuEventArgs>(this.OnRenderingActiveMenu);
 
         // Integrations
-        if (!this.toolbarIconsIntegration.IsLoaded)
+        if (!this.iconicFrameworkIntegration.IsLoaded)
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.Unsubscribe(this.OnIconPressed);
+        this.registeredIconId = null;
     }
 
     private void LogTransfer(IStorageContainer from, IStorageContainer to, Dictionary<string, int> amounts)
@@ -177,10 +180,15 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
 
     private void OnIconPressed(IIconPressedEventArgs e)
     {
-        if (e.Id == this.iconRegistry.Icon(InternalIcon.Stash).Id)
+        if (this.registeredIconId is null
+            || e.Id != this.registeredIconId
+            || e.Button != SButton.MouseLeft
+            || !Context.IsPlayerFree)
         {
-            this.StashIntoAll();
+            return;
         }
+
+        this.StashIntoAll();
     }
 
     private void OnRenderingActiveMenu(RenderingActiveMenuEventArgs obj)

@@ -21,11 +21,12 @@ internal sealed class InventoryTab : BaseComponent
     /// <param name="y">The y-coordinate of the tab component.</param>
     /// <param name="icon">The tab icon.</param>
     /// <param name="tabData">The inventory tab data.</param>
+    /// <param name="label">The localized label text.</param>
     /// <param name="overrideWidth">Indicates if the component should have a default width.</param>
-    public InventoryTab(ICustomMenu? parent, int x, int y, IIcon icon, TabData tabData, int overrideWidth = -1)
-        : base(parent, x, y, Game1.tileSize, Game1.tileSize, tabData.Label)
+    public InventoryTab(ICustomMenu? parent, int x, int y, IIcon icon, TabData tabData, string label, int overrideWidth = -1)
+        : base(parent, x, y, Game1.tileSize, Game1.tileSize, label)
     {
-        var textBounds = Game1.smallFont.MeasureString(tabData.Label).ToPoint();
+        var textBounds = Game1.smallFont.MeasureString(label).ToPoint();
         this.Data = tabData;
         this.overrideWidth = overrideWidth;
         this.origin = new Vector2(x, y);
@@ -51,6 +52,8 @@ internal sealed class InventoryTab : BaseComponent
     public override void Draw(SpriteBatch spriteBatch, Point cursor, Point offset)
     {
         cursor -= offset;
+        this.Update(cursor);
+
         var hover = this.bounds.Contains(cursor);
         var color = this.Active
             ? Color.White
@@ -156,7 +159,7 @@ internal sealed class InventoryTab : BaseComponent
                 this.bounds.X + Game1.tileSize + offset.X,
                 this.bounds.Y + (IClickableMenu.borderWidth / 2f) + offset.Y),
             this.Active ? Game1.textColor : Game1.unselectedOptionColor);
-    }
+        }
 
     /// <inheritdoc />
     public override void Update(Point cursor)

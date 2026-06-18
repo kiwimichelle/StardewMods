@@ -11,7 +11,7 @@ using StardewMods.Common.Services.Integrations.BetterCrafting;
 using StardewMods.Common.Services.Integrations.ContentPatcher;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.Services.Integrations.GenericModConfigMenu;
-using StardewMods.Common.Services.Integrations.ToolbarIcons;
+using StardewMods.Common.Services.Integrations.IconicFramework;
 
 /// <inheritdoc />
 internal sealed class ModEntry : Mod
@@ -43,7 +43,7 @@ internal sealed class ModEntry : Mod
         container.RegisterSingleton<ISimpleLogging, FauxCoreIntegration>();
         container.RegisterSingleton<StatusEffectManager>();
         container.RegisterSingleton<IThemeHelper, FauxCoreIntegration>();
-        container.RegisterSingleton<ToolbarIconsIntegration>();
+        container.RegisterSingleton<IconicFrameworkIntegration>();
         container.RegisterSingleton<UiToolkit>();
         container.RegisterInstance<Func<IModConfig>>(container.GetInstance<IModConfig>);
         container.Collection.Register<IFeature>(

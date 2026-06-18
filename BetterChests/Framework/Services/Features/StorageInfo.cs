@@ -345,8 +345,11 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
         public string Name { get; } = name;
 
         public Point NameBounds { get; } = Game1.smallFont.MeasureString($"{name} ").ToPoint();
+
         public Point TotalBounds { get; } = Game1.smallFont.MeasureString($"{name} {value}").ToPoint();
+
         public string Value { get; } = value;
+
         public Point ValueBounds { get; } = Game1.smallFont.MeasureString($"{value} ").ToPoint();
     }
 }

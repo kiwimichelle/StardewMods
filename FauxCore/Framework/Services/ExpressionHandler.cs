@@ -201,8 +201,6 @@ internal sealed class ExpressionHandler : BaseService<ExpressionHandler>, IExpre
             Log.TraceOnce("Failed to parse search expression {0}.\n{1}", expression, ex);
             parsedExpression = ExpressionHandler.DefaultExpression;
         }
-
-        //this.cachedSearches.AddOrUpdate(expression, parsedExpression.DeepClone());
         return true;
     }
 }

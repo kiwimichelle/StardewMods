@@ -11,7 +11,7 @@ using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.BetterCrafting;
 using StardewMods.Common.Services.Integrations.FauxCore;
-using StardewMods.Common.Services.Integrations.ToolbarIcons;
+using StardewMods.Common.Services.Integrations.IconicFramework;
 using StardewValley.Locations;
 using StardewValley.Objects;
 
@@ -25,7 +25,8 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
     private readonly ContainerFactory containerFactory;
     private readonly IIconRegistry iconRegistry;
     private readonly IInputHelper inputHelper;
-    private readonly ToolbarIconsIntegration toolbarIconsIntegration;
+    private readonly IconicFrameworkIntegration iconicFrameworkIntegration;
+    private string? registeredIconId;
 
     /// <summary>Initializes a new instance of the <see cref="CraftFromChest" /> class.</summary>
     /// <param name="betterCraftingIntegration">Dependency for Better Crafting integration.</param>
@@ -35,7 +36,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
     /// <param name="iconRegistry">Dependency used for registering and retrieving icons.</param>
     /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
-    /// <param name="toolbarIconsIntegration">Dependency for Toolbar Icons integration.</param>
+    /// <param name="iconicFrameworkIntegration">Dependency for Toolbar Icons integration.</param>
     public CraftFromChest(
         BetterCraftingIntegration betterCraftingIntegration,
         BetterCraftingInventoryProvider betterCraftingInventoryProvider,
@@ -44,7 +45,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         IIconRegistry iconRegistry,
         IInputHelper inputHelper,
         IModConfig modConfig,
-        ToolbarIconsIntegration toolbarIconsIntegration)
+        IconicFrameworkIntegration iconicFrameworkIntegration)
         : base(eventManager, modConfig)
     {
         CraftFromChest.instance = this;
@@ -53,7 +54,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         this.containerFactory = containerFactory;
         this.iconRegistry = iconRegistry;
         this.inputHelper = inputHelper;
-        this.toolbarIconsIntegration = toolbarIconsIntegration;
+        this.iconicFrameworkIntegration = iconicFrameworkIntegration;
 
         this.Events.Subscribe<GameLaunchedEventArgs>(this.OnGameLaunched);
     }
@@ -104,18 +105,19 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         this.betterCraftingIntegration.Api.MenuPopulateContainers += this.OnMenuPopulateContainers;
 
         // Integrations
-        if (!this.toolbarIconsIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Craft, out var icon))
+        if (!this.iconicFrameworkIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Craft, out var icon))
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
-        this.toolbarIconsIntegration.Api.AddToolbarIcon(
-            icon.UniqueId,
+        this.registeredIconId = icon.UniqueId;
+        this.iconicFrameworkIntegration.Api.Subscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.AddToolbarIcon(
+            this.registeredIconId,
             icon.Path,
             icon.Area,
             () => I18n.Button_CraftFromChest_Name(),
-            null);
+            () => I18n.Button_CraftFromChest_Name());
     }
 
     /// <inheritdoc />
@@ -139,12 +141,13 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
         this.betterCraftingIntegration.Api.UnregisterInventoryProvider(typeof(ObjectContainer));
         this.betterCraftingIntegration.Api.MenuPopulateContainers -= this.OnMenuPopulateContainers;
 
-        if (!this.toolbarIconsIntegration.IsLoaded)
+        if (!this.iconicFrameworkIntegration.IsLoaded)
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.Unsubscribe(this.OnIconPressed);
+        this.registeredIconId = null;
     }
 
     private static bool CookingPredicate(IStorageContainer container) =>
@@ -195,7 +198,9 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
 
     private void OnIconPressed(IIconPressedEventArgs e)
     {
-        if (this.iconRegistry.TryGetIcon(InternalIcon.Craft, out var icon) && e.Id == icon.Id)
+        if (this.registeredIconId is not null
+            && e.Id == this.registeredIconId
+            && e.Button == SButton.MouseLeft)
         {
             this.betterCraftingIntegration.Api!.OpenCraftingMenu(
                 false,

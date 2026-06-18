@@ -1,9 +1,9 @@
 #if IS_FAUXCORE
 
-namespace StardewMods.FauxCore.Common.Services.Integrations.ToolbarIcons;
+namespace StardewMods.FauxCore.Common.Services.Integrations.IconicFramework;
 #else
 
-namespace StardewMods.Common.Services.Integrations.ToolbarIcons;
+namespace StardewMods.Common.Services.Integrations.IconicFramework;
 #endif
 
 #pragma warning disable CA1711
@@ -12,8 +12,8 @@ namespace StardewMods.Common.Services.Integrations.ToolbarIcons;
 public interface IIconPressedEventArgs
 {
     /// <summary>Gets the button that was pressed.</summary>
-    SButton Button { get; }
+    public SButton Button { get; }
 
     /// <summary>Gets the id of the icon that was pressed.</summary>
-    string Id { get; }
+    public string Id { get; }
 }

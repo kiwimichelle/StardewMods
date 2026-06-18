@@ -12,7 +12,7 @@ using StardewMods.Common.Interfaces;
 using StardewMods.Common.Services;
 using StardewMods.Common.Services.Integrations.BetterChests;
 using StardewMods.Common.Services.Integrations.FauxCore;
-using StardewMods.Common.Services.Integrations.ToolbarIcons;
+using StardewMods.Common.Services.Integrations.IconicFramework;
 
 /// <summary>Search for which chests have the item you're looking for.</summary>
 internal sealed class ChestFinder : BaseFeature<ChestFinder>
@@ -26,17 +26,20 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
     private readonly PerScreen<List<Pointer>> pointers = new(() => []);
     private readonly PerScreen<IExpression?> searchExpression = new();
     private readonly PerScreen<string> searchText = new(() => string.Empty);
-    private readonly ToolbarIconsIntegration toolbarIconsIntegration;
+    private readonly IconicFrameworkIntegration iconicFrameworkIntegration;
+
+    // 确保 ID 匹配一致性的字段
+    private string? registeredIconId;
 
     /// <summary>Initializes a new instance of the <see cref="ChestFinder" /> class.</summary>
     /// <param name="containerFactory">Dependency used for accessing containers.</param>
     /// <param name="eventManager">Dependency used for managing events.</param>
-    /// <param name="expressionHandler">Dependency used for parsing expressions.</param>
-    /// <param name="iconRegistry">Dependency used for registering and retrieving icons.</param>
-    /// <param name="inputHelper">Dependency used for checking and changing input state.</param>
+    /// <param name="expressionHandler">Dependency used for parsing search expressions.</param>
+    /// <param name="iconRegistry">Dependency used for retrieving icons.</param>
+    /// <param name="inputHelper">Dependency used for checking and suppressing input.</param>
     /// <param name="menuHandler">Dependency used for managing the current menu.</param>
     /// <param name="modConfig">Dependency used for accessing config data.</param>
-    /// <param name="toolbarIconsIntegration">Dependency for Toolbar Icons integration.</param>
+    /// <param name="iconicFrameworkIntegration">Dependency used for adding toolbar icons.</param>
     public ChestFinder(
         ContainerFactory containerFactory,
         IEventManager eventManager,
@@ -45,7 +48,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
         IInputHelper inputHelper,
         MenuHandler menuHandler,
         IModConfig modConfig,
-        ToolbarIconsIntegration toolbarIconsIntegration)
+        IconicFrameworkIntegration iconicFrameworkIntegration)
         : base(eventManager, modConfig)
     {
         this.containerFactory = containerFactory;
@@ -53,7 +56,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
         this.iconRegistry = iconRegistry;
         this.inputHelper = inputHelper;
         this.menuHandler = menuHandler;
-        this.toolbarIconsIntegration = toolbarIconsIntegration;
+        this.iconicFrameworkIntegration = iconicFrameworkIntegration;
     }
 
     /// <inheritdoc />
@@ -62,45 +65,41 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
     /// <inheritdoc />
     protected override void Activate()
     {
-        // Events
         this.Events.Subscribe<RenderedHudEventArgs>(this.OnRenderedHud);
         this.Events.Subscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
         this.Events.Subscribe<MenuChangedEventArgs>(this.OnMenuChanged);
         this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
         this.Events.Subscribe<WarpedEventArgs>(this.OnWarped);
 
-        // Integrations
-        if (!this.toolbarIconsIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Search, out var icon))
+        if (!this.iconicFrameworkIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Search, out var icon))
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
-        this.toolbarIconsIntegration.Api.AddToolbarIcon(
-            icon.UniqueId,
+        this.registeredIconId = icon.UniqueId;
+        this.iconicFrameworkIntegration.Api.Subscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.AddToolbarIcon(
+            this.registeredIconId,
             icon.Path,
             icon.Area,
             () => I18n.Button_FindChest_Name(),
-            null);
+            () => I18n.Button_FindChest_Name());
     }
 
     /// <inheritdoc />
     protected override void Deactivate()
     {
-        // Events
         this.Events.Unsubscribe<RenderedHudEventArgs>(this.OnRenderedHud);
         this.Events.Unsubscribe<ButtonsChangedEventArgs>(this.OnButtonsChanged);
-        this.Events.Subscribe<MenuChangedEventArgs>(this.OnMenuChanged);
-        this.Events.Subscribe<SearchChangedEventArgs>(this.OnSearchChanged);
+        this.Events.Unsubscribe<MenuChangedEventArgs>(this.OnMenuChanged);
+        this.Events.Unsubscribe<SearchChangedEventArgs>(this.OnSearchChanged);
         this.Events.Unsubscribe<WarpedEventArgs>(this.OnWarped);
 
-        // Integrations
-        if (!this.toolbarIconsIntegration.IsLoaded)
+        if (this.iconicFrameworkIntegration.IsLoaded)
         {
-            return;
+            this.iconicFrameworkIntegration.Api.Unsubscribe(this.OnIconPressed);
+            this.registeredIconId = null;
         }
-
-        this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
     }
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
@@ -146,7 +145,9 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
 
     private void OnIconPressed(IIconPressedEventArgs e)
     {
-        if (this.iconRegistry.TryGetIcon(InternalIcon.Search, out var icon) && e.Id == icon.Id)
+        if (this.registeredIconId is not null
+            && e.Id == this.registeredIconId
+            && e.Button == SButton.MouseLeft)
         {
             this.OpenSearchBar();
         }

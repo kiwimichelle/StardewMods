@@ -8,7 +8,7 @@ using StardewMods.Common.Helpers;
 using StardewMods.Common.Interfaces;
 using StardewMods.Common.Models;
 using StardewMods.Common.Services.Integrations.FauxCore;
-using StardewMods.Common.Services.Integrations.ToolbarIcons;
+using StardewMods.Common.Services.Integrations.IconicFramework;
 using StardewMods.Common.UI.Menus;
 
 /// <summary>Feature used for debugging purposes.</summary>
@@ -19,7 +19,8 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
     private readonly ContainerHandler containerHandler;
     private readonly IExpressionHandler expressionHandler;
     private readonly IIconRegistry iconRegistry;
-    private readonly ToolbarIconsIntegration toolbarIconsIntegration;
+    private readonly IconicFrameworkIntegration iconicFrameworkIntegration;
+    private string? registeredIconId;
 
     /// <summary>Initializes a new instance of the <see cref="DebugMode" /> class.</summary>
     /// <param name="commandHelper">Dependency used for handling console commands.</param>
@@ -29,7 +30,7 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
     /// <param name="eventManager">Dependency used for managing events.</param>
     /// <param name="expressionHandler">Dependency used for parsing expressions.</param>
     /// <param name="iconRegistry">Dependency used for registering and retrieving icons.</param>
-    /// <param name="toolbarIconsIntegration">Dependency for Toolbar Icons integration.</param>
+    /// <param name="iconicFrameworkIntegration">Dependency for Toolbar Icons integration.</param>
     public DebugMode(
         ICommandHelper commandHelper,
         ConfigManager configManager,
@@ -38,7 +39,7 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
         IEventManager eventManager,
         IExpressionHandler expressionHandler,
         IIconRegistry iconRegistry,
-        ToolbarIconsIntegration toolbarIconsIntegration)
+        IconicFrameworkIntegration iconicFrameworkIntegration)
         : base(eventManager, configManager)
     {
         // Init
@@ -47,7 +48,7 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
         this.containerHandler = containerHandler;
         this.expressionHandler = expressionHandler;
         this.iconRegistry = iconRegistry;
-        this.toolbarIconsIntegration = toolbarIconsIntegration;
+        this.iconicFrameworkIntegration = iconicFrameworkIntegration;
 
         // Commands
         commandHelper.Add("bc_config", I18n.Command_PlayerConfig(), this.Command);
@@ -86,36 +87,44 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
     /// <inheritdoc />
     protected override void Activate()
     {
-        if (!this.toolbarIconsIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Debug, out var icon))
+        if (!this.iconicFrameworkIntegration.IsLoaded || !this.iconRegistry.TryGetIcon(InternalIcon.Debug, out var icon))
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Subscribe(this.OnIconPressed);
-        this.toolbarIconsIntegration.Api.AddToolbarIcon(
-            icon.UniqueId,
+        this.registeredIconId = icon.UniqueId;
+        this.iconicFrameworkIntegration.Api.Subscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.AddToolbarIcon(
+            this.registeredIconId,
             icon.Path,
             icon.Area,
             () => I18n.Button_Debug_Name(),
-            null);
+            () => I18n.Button_Debug_Name());
     }
 
     /// <inheritdoc />
     protected override void Deactivate()
     {
-        if (!this.toolbarIconsIntegration.IsLoaded)
+        if (!this.iconicFrameworkIntegration.IsLoaded)
         {
             return;
         }
 
-        this.toolbarIconsIntegration.Api.Unsubscribe(this.OnIconPressed);
+        this.iconicFrameworkIntegration.Api.Unsubscribe(this.OnIconPressed);
+        this.registeredIconId = null;
     }
 
     private void OnIconPressed(IIconPressedEventArgs e)
     {
-        if (!this.iconRegistry.TryGetIcon(InternalIcon.Debug, out var icon)
-            || e.Id != icon.Id
-            || Game1.activeClickableMenu?.readyToClose() == false)
+        if (this.registeredIconId is null
+            || e.Id != this.registeredIconId
+            || e.Button != SButton.MouseLeft
+            || !Context.IsPlayerFree)
+        {
+            return;
+        }
+
+        if (Game1.activeClickableMenu?.readyToClose() == false)
         {
             return;
         }
@@ -158,7 +167,12 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
 
     private void ShowMenu(IReadOnlyList<string> args)
     {
-        if (args.Count != 1 || Game1.activeClickableMenu?.readyToClose() == false)
+        if (args.Count != 1 || !Context.IsPlayerFree)
+        {
+            return;
+        }
+
+        if (Game1.activeClickableMenu?.readyToClose() == false)
         {
             return;
         }

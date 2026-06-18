@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Name>FauxCore</Name>
     <Description>Framework that provides shared functionality for all of my mods.</Description>
-    <Version>1.2.2</Version>
+    <Version>1.2.3-unofficial.1</Version>
     <EnableHarmony>true</EnableHarmony>
     <RootNamespace>StardewMods.FauxCore</RootNamespace>
     <UniqueId>furyx639.FauxCore</UniqueId>
@@ -26,10 +26,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.14.1" required="false" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Version="1.16.0" required="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Update="JetBrains.Annotations" Version="2026.2.0" />
     <PackageReference Update="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
 </Project>
