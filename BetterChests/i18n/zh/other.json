@@ -7,13 +7,17 @@
   "effect.carry-chest-slow.description": "负重过大",
   // 按钮
   "button.find-chest.name": "查找箱子",
+  "button.find-chest.description": "搜索哪些箱子中含有特定物品。",
   "button.stash-to-chest.name": "存入箱子",
+  "button.stash-to-chest.description": "将背包中的物品存入附近的箱子。",
   "button.craft-from-chest.name": "从箱子制作",
+  "button.craft-from-chest.description": "使用附近箱子中的物品打开合成菜单。",
   "button.transfer-up.name": "物品转入箱子",
   "button.transfer-down.name": "物品取回背包",
   "button.include-existing-stacks.name": "包含已有堆叠",
   "button.reject-uncategorized.name": "拒绝未分类物品",
   "button.debug.name": "调试",
+  "button.debug.description": "打开 Better Chests 调试菜单。",
   // 配置界面
   "configure.options.name": "选项",
   "configure.categorize.name": "分类",

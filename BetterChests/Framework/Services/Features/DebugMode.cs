@@ -100,7 +100,7 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
             icon.Path,
             icon.Area,
             () => I18n.Button_Debug_Name(),
-            () => I18n.Button_Debug_Name());
+            () => I18n.Button_Debug_Description());
     }
 
     /// <inheritdoc />

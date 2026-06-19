@@ -117,7 +117,7 @@ internal sealed class CraftFromChest : BaseFeature<CraftFromChest>
             icon.Path,
             icon.Area,
             () => I18n.Button_CraftFromChest_Name(),
-            () => I18n.Button_CraftFromChest_Name());
+            () => I18n.Button_CraftFromChest_Description());
     }
 
     /// <inheritdoc />

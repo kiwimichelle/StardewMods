@@ -7,13 +7,17 @@
   "effect.carry-chest-slow.description": "Overburdened",
   // Buttons
   "button.find-chest.name": "Search for Chest",
+  "button.find-chest.description": "Search for which chests contain a specific item.",
   "button.stash-to-chest.name": "Stash to Chest",
+  "button.stash-to-chest.description": "Stash items from your inventory into nearby chests.",
   "button.craft-from-chest.name": "Craft from Chest",
+  "button.craft-from-chest.description": "Open the crafting menu using items from nearby chests.",
   "button.transfer-up.name": "Transfer Items into Chest",
   "button.transfer-down.name": "Transfer Items into Inventory",
   "button.include-existing-stacks.name": "Include Existing Stacks",
   "button.reject-uncategorized.name": "Reject Uncategorized Items",
   "button.debug.name": "Debug",
+  "button.debug.description": "Open the Better Chests debug menu.",
   // Configure
   "configure.options.name": "Configure",
   "configure.categorize.name": "Categorize",

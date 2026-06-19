@@ -83,7 +83,7 @@ internal sealed class ChestFinder : BaseFeature<ChestFinder>
             icon.Path,
             icon.Area,
             () => I18n.Button_FindChest_Name(),
-            () => I18n.Button_FindChest_Name());
+            () => I18n.Button_FindChest_Description());
     }
 
     /// <inheritdoc />

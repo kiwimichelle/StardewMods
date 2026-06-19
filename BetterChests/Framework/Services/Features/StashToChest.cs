@@ -82,7 +82,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             icon.Path,
             icon.Area,
             () => I18n.Button_StashToChest_Name(),
-            () => I18n.Button_StashToChest_Name());
+            () => I18n.Button_StashToChest_Description());
     }
 
     /// <inheritdoc />
