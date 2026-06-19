@@ -94,6 +94,7 @@ internal sealed class DebugMenu : BaseMenu
                         return true;
 
                     default:
+                        this.exitThisMenu();
                         this.debugMode.Command("bc_menu", [item]);
                         return true;
                 }

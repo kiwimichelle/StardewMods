@@ -1,6 +1,7 @@
 namespace StardewMods.BetterChests.Framework.Services.Features;
 
 using System.Globalization;
+using StardewModdingAPI.Events;
 using StardewMods.BetterChests.Framework.Enums;
 using StardewMods.BetterChests.Framework.Services.Factory;
 using StardewMods.BetterChests.Framework.UI.Menus;
@@ -158,11 +159,24 @@ internal sealed class DebugMode : BaseFeature<DebugMode>
                 }
 
                 this.containerHandler.Configure(container);
+                this.Events.Subscribe<MenuChangedEventArgs>(this.OnAfterContainerConfig); // 加这一行
                 return;
 
             default:
                 return;
         }
+    }
+
+    private void OnAfterContainerConfig(MenuChangedEventArgs e)
+    {
+        if (e.OldMenu?.GetType().Name != "SpecificModConfigMenu"
+            || e.NewMenu?.GetType().Name == "SpecificModConfigMenu")
+        {
+            return;
+        }
+
+        this.Events.Unsubscribe<MenuChangedEventArgs>(this.OnAfterContainerConfig);
+        this.configManager.SetupMainConfig();
     }
 
     private void ShowMenu(IReadOnlyList<string> args)
