@@ -1,0 +1,59 @@
+﻿name: Auto Release on Tag
+
+# 关键配置：只有当推送符合 v* 格式的 tag 时才会触发此工作流
+on:
+  push:
+    tags:
+      - 'v*' # 匹配 v1.0.0, v2.1.3-beta 等
+
+# 赋予工作流写权限，这样它才有权限创建 Release 并上传文件
+permissions:
+  contents: write
+
+jobs:
+  deploy-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取源码
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # 2. 设置 .NET 环境 (根据你的 Mod 版本调整，通常为 6.0 或 8.0)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      # 3. 还原依赖并以 Release 模式编译
+      - name: Restore and Build Mod
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+
+      # 4. 自动识别 Mod 文件夹并打包成以 Tag 命名的 ZIP
+      - name: Package Mod into ZIP
+        id: package_step
+        run: |
+          cd bin/Release/Mods
+          # 获取编译出来的 Mod 文件夹名称
+          FOLDER_NAME=$(ls -d */ | head -n 1 | sed 's/\///')
+          # 获取当前触发的 Tag 名称 (例如 v1.0.0)
+          TAG_NAME=${{ github.ref_name }}
+
+          # 将其压缩，命名为 "Mod名称-版本号.zip"
+          ZIP_NAME="${FOLDER_NAME}-${TAG_NAME}.zip"
+          zip -r "../../../${ZIP_NAME}" "$FOLDER_NAME"
+
+          # 将 ZIP 文件名传递给下一个步骤使用
+          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+
+      # 5. 创建 GitHub Release 并上传刚才的 ZIP 压缩包
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "${{ steps.package_step.outputs.zip_name }}"
+          # 自动根据你的 commit 历史生成 Release 日志（更新日志）
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

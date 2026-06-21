@@ -15,6 +15,10 @@ using StardewValley.Menus;
 /// <summary>Adds a search bar to the top of the <see cref="ItemGrabMenu" />.</summary>
 internal sealed class SearchItems : BaseFeature<SearchItems>
 {
+    // Extra vertical clearance so the search bar doesn't overlap mods that add their own
+    // title bar above the chest menu (e.g. ChestsAnywhere's title and page-navigation row).
+    private const int TopBarClearance = 36;
+
     private readonly IExpressionHandler expressionHandler;
     private readonly IInputHelper inputHelper;
     private readonly PerScreen<bool> isActive = new(() => true);
@@ -197,7 +201,8 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
         var y = top.InventoryMenu.yPositionOnScreen
             - (IClickableMenu.borderWidth / 2)
             - Game1.tileSize
-            - (top.Rows == 3 ? 25 : 4);
+            - (top.Rows == 3 ? 25 : 4)
+            - SearchItems.TopBarClearance;
 
         this.searchBar.Value = new TextField(
             null,
