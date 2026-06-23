@@ -270,6 +270,12 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             this.Config,
             () => container.Chest.playerChoiceColor.Value,
             c => container.Chest.playerChoiceColor.Value = c);
+        // 强制覆盖 MenuManager 的接线，确保第一行和最后一行最右格指向 colorPickerToggleButton
+        var toggleId = itemGrabMenu.colorPickerToggleButton.myID;
+        foreach (var cc in itemGrabMenu.ItemsToGrabMenu.GetBorder(InventoryMenu.BorderSide.Right))
+        {
+            cc.rightNeighborID = toggleId;
+        }
     }
 
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
