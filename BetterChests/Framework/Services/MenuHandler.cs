@@ -709,6 +709,10 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
             {
                 this.Top.Container = null;
                 this.Bottom.Container = null;
+                foreach (var component in this.components.Value)
+                {
+                    this.CurrentMenu?.allClickableComponents?.Remove(component);
+                }
                 this.components.Value.Clear();
                 this.eventManager.Publish(new InventoryMenuChangedEventArgs(null, parent, top, bottom));
                 return;
@@ -745,11 +749,15 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
 
             // Reset filters
             this.UpdateHighlightMethods();
+            foreach (var component in this.components.Value)
+            {
+                this.CurrentMenu?.allClickableComponents?.Remove(component);
+            }
             this.components.Value.Clear();
             this.eventManager.Publish(new InventoryMenuChangedEventArgs(this.components.Value, parent, top, bottom));
 
             // Add components to the menu
-            this.CurrentMenu.allClickableComponents ??= [];
+            this.CurrentMenu!.allClickableComponents ??= [];
             foreach (var component in this.components.Value)
             {
                 this.CurrentMenu.allClickableComponents.Add(component);

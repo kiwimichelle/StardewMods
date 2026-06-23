@@ -32,6 +32,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
     // grid is rebuilt with fewer/different border components, stale links could remain on
     // components we no longer manage.
     private readonly PerScreen<List<ClickableComponent>> linkedBorderComponents = new(() => []);
+    private readonly PerScreen<InventoryTab?> activeTab = new(() => null);
 
     /// <summary>Initializes a new instance of the <see cref="InventoryTabs" /> class.</summary>
     /// <param name="eventManager">Dependency used for managing events.</param>
@@ -73,8 +74,26 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
             return;
         }
 
+        // 再次点击同一标签 → 重置
+        if (this.activeTab.Value == tab)
+        {
+            Game1.playSound("drumkit6");
+            this.activeTab.Value.Active = false;
+            this.activeTab.Value = null;
+            this.Events.Publish(new SearchChangedEventArgs(string.Empty, null));
+            return;
+        }
+
+        // 切换到新标签
+        if (this.activeTab.Value is not null)
+        {
+            this.activeTab.Value.Active = false;
+        }
+
         Log.Trace("{0}: Switching tab to {1}.", this.Id, tab.Data.Label);
         Game1.playSound("drumkit6");
+        tab.Active = true;
+        this.activeTab.Value = tab;
         _ = this.expressionHandler.TryParseExpression(tab.Data.SearchTerm, out var expression);
         this.Events.Publish(new SearchChangedEventArgs(tab.Data.SearchTerm, expression));
     }
@@ -84,6 +103,7 @@ internal sealed class InventoryTabs : BaseFeature<InventoryTabs>
         var container = this.menuHandler.Top.Container;
         var top = this.menuHandler.Top;
         this.tabs.Value.Clear();
+        this.activeTab.Value = null;
 
         // Reset neighbor links left by the previous menu build before doing anything else.
         // This must run even if the early-return conditions below are hit, so a menu that

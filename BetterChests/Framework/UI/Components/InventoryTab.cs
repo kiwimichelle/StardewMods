@@ -43,7 +43,7 @@ internal sealed class InventoryTab : BaseComponent
     }
 
     /// <summary>Gets or sets a value indicating whether the tab is currently active.</summary>
-    public bool Active { get; set; } = true;
+    public bool Active { get; set; }
 
     /// <summary>Gets the tab data.</summary>
     public TabData Data { get; }
@@ -54,7 +54,10 @@ internal sealed class InventoryTab : BaseComponent
         cursor -= offset;
         this.Update(cursor);
 
-        var hover = this.bounds.Contains(cursor);
+        // 🌟 核心修复：增加手柄吸附判定，确保手柄选中时也能正确高亮
+        var hover = this.bounds.Contains(cursor)
+            || (Game1.options.SnappyMenus && Game1.activeClickableMenu?.currentlySnappedComponent == this);
+
         var color = this.Active
             ? Color.White
             : hover
@@ -159,7 +162,7 @@ internal sealed class InventoryTab : BaseComponent
                 this.bounds.X + Game1.tileSize + offset.X,
                 this.bounds.Y + (IClickableMenu.borderWidth / 2f) + offset.Y),
             this.Active ? Game1.textColor : Game1.unselectedOptionColor);
-        }
+    }
 
     /// <inheritdoc />
     public override void Update(Point cursor)
@@ -169,7 +172,11 @@ internal sealed class InventoryTab : BaseComponent
             return;
         }
 
-        this.bounds.Width = this.bounds.Contains(cursor)
+        // 🌟 核心修复：手柄模式下，只要当前吸附的组件是自己，就强制判定为 Hover 状态以展开标签
+        bool isHovered = this.bounds.Contains(cursor)
+            || (Game1.options.SnappyMenus && Game1.activeClickableMenu?.currentlySnappedComponent == this);
+
+        this.bounds.Width = isHovered
             ? Math.Min(this.bounds.Width + 16, this.textWidth + Game1.tileSize + IClickableMenu.borderWidth)
             : Math.Max(this.bounds.Width - 16, Game1.tileSize);
 
