@@ -12,7 +12,7 @@
     <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableModZip Condition="'$(Configuration)' == 'Debug'">False</EnableModZip>
-    <ModZipPath>$(SolutionDir)\releases</ModZipPath>
+    <ModZipPath>$(SolutionDir)\_releases</ModZipPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>Nullable</WarningsAsErrors>
