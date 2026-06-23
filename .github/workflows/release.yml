@@ -1,12 +1,11 @@
 ﻿name: Build releases
 
 on:
-  push:
-    branches:
-      - "**"
-    tags-ignore:
-      - "**"
   workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号 (例如 1.0.0)'
+        required: true
 
 jobs:
   build:
@@ -15,20 +14,12 @@ jobs:
       id-token: write
       attestations: write
       contents: write
-    env:
-      RELEASE_REF: refs/heads/develop
     steps:
       - name: Fetch code
         uses: actions/checkout@v4
-        with:
-          fetch-tags: false
 
       - name: Add build environment
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-build-environment@v1
-
-      - name: Set prerelease versions
-        uses: Pathoschild/SMAPI-ModBuildWorkflow/set-prerelease-versions@v1
-        if: github.ref != env.RELEASE_REF
 
       - name: Build mods
         run: dotnet build --configuration Release
@@ -36,12 +27,12 @@ jobs:
       - name: Upload release zips
         uses: Pathoschild/SMAPI-ModBuildWorkflow/upload-release-artifacts@v1
         with:
-          create_attestations: ${{github.ref == env.RELEASE_REF}}
+          create_attestations: true
           create_combined_zip: "StardewMods"
 
-      - name: Upload to GitHub
-        uses: ncipollo/release-action@v1
-        if: github.ref == env.RELEASE_REF
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          artifacts: 'releases/*.zip'
-          generateReleaseNotes: true
+          tag_name: v${{ github.event.inputs.version }}
+          files: 'releases/*.zip'
+          generate_release_notes: true
