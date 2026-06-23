@@ -188,6 +188,10 @@ internal sealed class SearchItems : BaseFeature<SearchItems>
             return;
         }
 
+        // 切换菜单时重置搜索状态
+        this.searchText.Value = string.Empty;
+        this.searchExpression.Value = null;
+        this.Events.Publish(new SearchChangedEventArgs(string.Empty, null));
         var width = Math.Min(12 * Game1.tileSize, Game1.uiViewport.Width);
 
         var x = top.Columns switch
