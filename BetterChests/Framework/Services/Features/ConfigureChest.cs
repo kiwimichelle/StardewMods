@@ -134,22 +134,34 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels());
+        // Use raw scaled pixels (no additional ModifyCoordinatesForUIScale) to avoid
+        // double-scaling at non-100% UI scale — same fix as MenuManager issue #117.
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
+
+        // For controller: currentlySnappedComponent reflects which icon the D-pad
+        // has focused. Mouse and controller paths are mutually exclusive because
+        // currentlySnappedComponent is null during mouse play.
+        var snapped = Game1.activeClickableMenu?.currentlySnappedComponent;
         IStorageContainer? container = null;
         ClickableComponent? icon = null;
+
         if (this.menuHandler.Top.Container?.ConfigureChest is FeatureOption.Enabled
-            && this.menuHandler.Top.Icon?.bounds.Contains(cursor) == true)
+            && this.menuHandler.Top.Icon is { } topIcon
+            && (topIcon.bounds.Contains(cursor)
+                || (e.Button == SButton.ControllerA && snapped?.myID == topIcon.myID)))
         {
             container = this.menuHandler.Top.Container;
-            icon = this.menuHandler.Top.Icon;
+            icon = topIcon;
         }
 
         if (container is null
             && this.menuHandler.Bottom.Container?.ConfigureChest is FeatureOption.Enabled
-            && this.menuHandler.Bottom.Icon?.bounds.Contains(cursor) == true)
+            && this.menuHandler.Bottom.Icon is { } bottomIcon
+            && (bottomIcon.bounds.Contains(cursor)
+                || (e.Button == SButton.ControllerA && snapped?.myID == bottomIcon.myID)))
         {
             container = this.menuHandler.Bottom.Container;
-            icon = this.menuHandler.Bottom.Icon;
+            icon = bottomIcon;
         }
 
         if (container is null || icon is null)

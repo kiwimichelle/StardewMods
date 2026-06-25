@@ -269,16 +269,27 @@ internal sealed class MenuManager
                 return;
         }
 
+        // Stable IDs for the two icon slots — must not collide with vanilla or
+        // other mod component IDs.  Top uses 88571, Bottom uses 88572.
+        var iconId = this == this.menuHandler.Top ? 88571 : 88572;
+
         if (string.IsNullOrWhiteSpace(this.Container?.StorageIcon)
             || !this.iconRegistry.TryGetIcon(this.Container.StorageIcon, out var storageIcon))
         {
-            this.Icon = new ClickableComponent(new Rectangle(x, y, Game1.tileSize, Game1.tileSize + 12), "icon");
+            this.Icon = new ClickableComponent(new Rectangle(x, y, Game1.tileSize, Game1.tileSize + 12), "icon")
+            {
+                myID = iconId,
+            };
+            parent.allClickableComponents ??= [];
+            parent.allClickableComponents.Add(this.Icon);
             return;
         }
 
         this.Icon = storageIcon.Component(IconStyle.Transparent, x, y);
         this.Icon.bounds.Size = new Point(Game1.tileSize, Game1.tileSize + 12);
-        parent.allClickableComponents?.Add(this.Icon);
+        this.Icon.myID = iconId;
+        parent.allClickableComponents ??= [];
+        parent.allClickableComponents.Add(this.Icon);
     }
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
@@ -348,8 +359,10 @@ internal sealed class MenuManager
 
     private void OnMouseWheelScrolled(MouseWheelScrolledEventArgs e)
     {
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
-        if (this.InventoryMenu?.isWithinBounds(cursor.X, cursor.Y) != true)
+        // ❌ 旧代码：var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
+        // 🌟 1.6 统一修正：直接读取已缩放像素，防止双重缩放 Bug
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
+        if (this.upArrow?.bounds.Contains(cursor) == true || this.downArrow?.bounds.Contains(cursor) == true)
         {
             return;
         }

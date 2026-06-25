@@ -74,6 +74,20 @@ internal sealed class IconDropdown : BaseMenu
         {
             this.MoveTo(new Point(this.xPositionOnScreen - offset.X, anchor.bounds.Top - this.height + 16 - offset.Y));
         }
+
+        // In controller mode, populate the component list so the Snappy navigation
+        // system can find the icons, then snap focus to the first item immediately.
+        if (Game1.options.SnappyMenus)
+        {
+            selectIcon.populateClickableComponentList();
+            this.currentlySnappedComponent = selectIcon.currentlySnappedComponent
+                ?? selectIcon.allClickableComponents.FirstOrDefault();
+
+            if (this.currentlySnappedComponent != null)
+            {
+                this.snapCursorToCurrentSnappedComponent();
+            }
+        }
     }
 
     /// <summary>Event raised when the selection changes.</summary>

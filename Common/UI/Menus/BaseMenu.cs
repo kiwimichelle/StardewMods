@@ -83,10 +83,10 @@ internal abstract class BaseMenu : IClickableMenu, ICustomMenu
     }
 
     /// <inheritdoc />
-    public override sealed void draw(SpriteBatch b) => this.draw(b, -1);
+    public sealed override void draw(SpriteBatch b) => this.draw(b, -1);
 
     /// <inheritdoc />
-    public override sealed void draw(SpriteBatch b, int red = -1, int green = -1, int blue = -1)
+    public sealed override void draw(SpriteBatch b, int red = -1, int green = -1, int blue = -1)
     {
         var cursor = UiToolkit.Cursor;
         this.SetHoverText(null);
@@ -252,7 +252,7 @@ internal abstract class BaseMenu : IClickableMenu, ICustomMenu
     }
 
     /// <inheritdoc />
-    public override sealed void performHoverAction(int x, int y)
+    public sealed override void performHoverAction(int x, int y)
     {
         base.performHoverAction(x, y);
         var cursor = new Point(x, y);
@@ -290,7 +290,7 @@ internal abstract class BaseMenu : IClickableMenu, ICustomMenu
     }
 
     /// <inheritdoc />
-    public override sealed void receiveLeftClick(int x, int y, bool playSound = true)
+    public sealed override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         base.receiveLeftClick(x, y, playSound);
         var cursor = new Point(x, y);
@@ -328,45 +328,23 @@ internal abstract class BaseMenu : IClickableMenu, ICustomMenu
     }
 
     /// <inheritdoc />
-    public override sealed void receiveRightClick(int x, int y, bool playSound = true)
+    // 找到并替换整个 receiveRightClick 方法
+    public override void receiveRightClick(int x, int y, bool playSound = true)
     {
-        base.receiveRightClick(x, y, playSound);
-        var cursor = Utility.ModifyCoordinatesForUIScale(new Vector2(x, y)).ToPoint();
-
-        // Right-click child menu
-        if (this.GetChildMenu() is { } childMenu)
-        {
-            childMenu.receiveRightClick(x, y, playSound);
-            return;
-        }
+        // ❌ 旧代码：var cursor = Utility.ModifyCoordinatesForUIScale(new Vector2(x, y)).ToPoint();
+        // 🌟 1.6 统一修正：直接使用分发的标准 UI 坐标，彻底移除二次缩放
+        var cursor = new Point(x, y);
 
         if (this.TryRightClick(cursor))
         {
             return;
         }
 
-        // Right-click sub-menus
-        foreach (var subMenu in this.SubMenus)
-        {
-            switch (subMenu)
-            {
-                case BaseMenu baseMenu:
-                    if (baseMenu.TryRightClick(cursor))
-                    {
-                        return;
-                    }
-
-                    break;
-
-                default:
-                    subMenu.receiveRightClick(x, y, playSound);
-                    break;
-            }
-        }
+        base.receiveRightClick(x, y, playSound);
     }
 
     /// <inheritdoc />
-    public override sealed void receiveScrollWheelAction(int direction)
+    public sealed override void receiveScrollWheelAction(int direction)
     {
         base.receiveScrollWheelAction(direction);
         var cursor = UiToolkit.Cursor;
@@ -404,7 +382,7 @@ internal abstract class BaseMenu : IClickableMenu, ICustomMenu
     }
 
     /// <inheritdoc />
-    public override sealed void releaseLeftClick(int x, int y)
+    public sealed override void releaseLeftClick(int x, int y)
     {
         base.releaseLeftClick(x, y);
         var cursor = new Point(x, y);

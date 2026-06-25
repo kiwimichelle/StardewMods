@@ -29,17 +29,25 @@ internal sealed class InventoryTab : BaseComponent
         var textBounds = Game1.smallFont.MeasureString(label).ToPoint();
         this.Data = tabData;
         this.overrideWidth = overrideWidth;
-        this.origin = new Vector2(x, y);
-        this.icon = icon.Component(IconStyle.Transparent, x - Game1.tileSize, y);
         this.textWidth = textBounds.X;
 
+        // 🌟 核心修复 1：将 origin 设为左侧展开后的最大边界锚点，防止判定区两头抖动
+        int maxWidth = this.textWidth + Game1.tileSize + IClickableMenu.borderWidth;
+        this.origin = new Vector2(x - maxWidth, y);
+
+        // 默认未展开时，判定区直接对齐左侧的图标
         if (overrideWidth == -1)
         {
-            return;
+            this.bounds.X = x - Game1.tileSize;
+            this.bounds.Width = Game1.tileSize;
+        }
+        else
+        {
+            this.bounds.Width = overrideWidth;
+            this.bounds.X = x - overrideWidth;
         }
 
-        this.bounds.Width = overrideWidth;
-        this.bounds.X = (int)this.origin.X - overrideWidth;
+        this.icon = icon.Component(IconStyle.Transparent, this.bounds.X, y);
     }
 
     /// <summary>Gets or sets a value indicating whether the tab is currently active.</summary>
@@ -172,15 +180,32 @@ internal sealed class InventoryTab : BaseComponent
             return;
         }
 
-        // 🌟 核心修复：手柄模式下，只要当前吸附的组件是自己，就强制判定为 Hover 状态以展开标签
+        // 检测悬浮（包括手柄吸附）
         bool isHovered = this.bounds.Contains(cursor)
             || (Game1.options.SnappyMenus && Game1.activeClickableMenu?.currentlySnappedComponent == this);
 
-        this.bounds.Width = isHovered
-            ? Math.Min(this.bounds.Width + 16, this.textWidth + Game1.tileSize + IClickableMenu.borderWidth)
-            : Math.Max(this.bounds.Width - 16, Game1.tileSize);
+        // 最大总宽度
+        int maxWidth = this.textWidth + Game1.tileSize + IClickableMenu.borderWidth;
 
-        this.bounds.X = (int)this.origin.X - this.bounds.Width;
-        this.icon.bounds.X = this.bounds.X;
+        // 🌟 核心修复 2：平滑增减宽度
+        int targetWidth = isHovered ? maxWidth : Game1.tileSize;
+        if (this.bounds.Width != targetWidth)
+        {
+            if (this.bounds.Width < targetWidth)
+            {
+                this.bounds.Width = Math.Min(this.bounds.Width + 16, targetWidth);
+            }
+            else
+            {
+                this.bounds.Width = Math.Max(this.bounds.Width - 16, targetWidth);
+            }
+
+            // 🌟 核心修复 3：X 坐标的正确收缩逻辑
+            // 未展开时：X 应该在原点左边一个 tileSize 处 (this.icon 的位置)
+            // 展开时：X 应该向左延伸到最大宽度处
+            int originalX = (int)this.origin.X + maxWidth; // 恢复传入的原始 X 坐标
+            this.bounds.X = originalX - this.bounds.Width;
+            this.icon.bounds.X = this.bounds.X; // 图标始终保持在整个标签的最左侧
+        }
     }
 }

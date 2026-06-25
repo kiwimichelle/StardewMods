@@ -347,23 +347,26 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels()).ToPoint();
+        // 🌟 完美修复：直接获取 SMAPI 已经缩放正确的 UI 坐标点，严禁二次调用 ModifyCoordinatesForUIScale
+        var uiMousePos = e.Cursor.GetScaledScreenPixels().ToPoint();
         var baseMenu = Game1.activeClickableMenu?.GetChildMenu() as BaseMenu;
+
         switch (e.Button)
         {
             case SButton.MouseLeft or SButton.ControllerA:
                 // Child menus
                 if (baseMenu is not null)
                 {
-                    baseMenu.receiveLeftClick(cursor.X, cursor.Y);
+                    baseMenu.receiveLeftClick(uiMousePos.X, uiMousePos.Y);
                     this.inputHelper.Suppress(e.Button);
                     return;
                 }
 
                 // Components
-                if (this
-                    .components.Value.Where(c => c.bounds.Contains(Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels())))
-                    .Any(component => component.TryLeftClick(cursor)))
+                // 🌟 完美修复：Contains 和 TryLeftClick 全部统一使用单次缩放的 uiMousePos
+                if (this.components.Value
+                    .Where(c => c.bounds.Contains(uiMousePos))
+                    .Any(component => component.TryLeftClick(uiMousePos)))
                 {
                     this.inputHelper.Suppress(e.Button);
                 }
@@ -374,15 +377,15 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
                 // Child menus
                 if (baseMenu is not null)
                 {
-                    baseMenu.receiveRightClick(cursor.X, cursor.Y);
+                    baseMenu.receiveRightClick(uiMousePos.X, uiMousePos.Y);
                     this.inputHelper.Suppress(e.Button);
                     return;
                 }
 
                 // Components
-                if (this
-                    .components.Value.Where(c => c.bounds.Contains(Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels())))
-                    .Any(component => component.TryRightClick(cursor)))
+                if (this.components.Value
+                    .Where(c => c.bounds.Contains(uiMousePos))
+                    .Any(component => component.TryRightClick(uiMousePos)))
                 {
                     this.inputHelper.Suppress(e.Button);
                 }
@@ -401,7 +404,8 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
     [Priority(int.MinValue)]
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
+        // 🌟 完美修复：剥离二次缩放
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
         switch (this.CurrentMenu)
         {
             case ItemGrabMenu itemGrabMenu:
@@ -581,7 +585,8 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
                 return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
+        // 🌟 完美修复：让每帧的组件 Update(cursor) 接收到完全客观、正确的 UI 鼠标坐标
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
         foreach (var component in this.components.Value)
         {
             component.Update(cursor);

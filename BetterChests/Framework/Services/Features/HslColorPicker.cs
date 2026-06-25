@@ -207,7 +207,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels()).ToPoint();
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
         if ((this.menuHandler.CurrentMenu as ItemGrabMenu)?.colorPickerToggleButton.bounds.Contains(cursor) == true)
         {
             this.inputHelper.Suppress(e.Button);
@@ -284,7 +284,7 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
         this.colorPicker.Value.Draw(e.SpriteBatch, cursor);
     }
 }

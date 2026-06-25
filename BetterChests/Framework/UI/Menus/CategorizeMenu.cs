@@ -142,6 +142,42 @@ internal sealed class CategorizeMenu : SearchMenu
     }
 
     /// <inheritdoc />
+    public override void populateClickableComponentList()
+    {
+        // 先让基类（SearchMenu）填充它自己的基础组件
+        base.populateClickableComponentList();
+
+        // 🌟 核心修复：为右侧悬浮的功能按钮链分配独立且不与原生冲突的高位手柄 ID
+        this.saveButton.myID = 99601;
+        this.stackToggle.myID = 99602;
+        this.copyButton.myID = 99603;
+        this.pasteButton.myID = 99604;
+        this.okButton.myID = 99605;
+
+        // 串联垂直方向的双向手柄导航链
+        this.saveButton.downNeighborID = this.stackToggle.myID;
+
+        this.stackToggle.upNeighborID = this.saveButton.myID;
+        this.stackToggle.downNeighborID = this.copyButton.myID;
+
+        this.copyButton.upNeighborID = this.stackToggle.myID;
+        this.copyButton.downNeighborID = this.pasteButton.myID;
+
+        this.pasteButton.upNeighborID = this.copyButton.myID;
+        this.pasteButton.downNeighborID = this.okButton.myID;
+
+        this.okButton.upNeighborID = this.pasteButton.myID;
+
+        // 开放横向破局口：允许手柄通过自动搜索（或强制指定）跳入和跳出右侧侧边栏
+        // 设置 SNAP_TO_DEFAULT 允许 1.6 的智能导航引擎根据物理相对位置自动帮玩家横向对齐左侧主菜单
+        this.saveButton.leftNeighborID = ClickableComponent.SNAP_TO_DEFAULT;
+        this.stackToggle.leftNeighborID = ClickableComponent.SNAP_TO_DEFAULT;
+        this.copyButton.leftNeighborID = ClickableComponent.SNAP_TO_DEFAULT;
+        this.pasteButton.leftNeighborID = ClickableComponent.SNAP_TO_DEFAULT;
+        this.okButton.leftNeighborID = ClickableComponent.SNAP_TO_DEFAULT;
+    }
+
+    /// <inheritdoc />
     protected override List<Item> GetItems()
     {
         var items = base.GetItems();
