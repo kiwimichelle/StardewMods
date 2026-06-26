@@ -318,7 +318,7 @@ internal sealed class MenuManager
 
     private void OnButtonsChanged(ButtonsChangedEventArgs e)
     {
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels()).ToPoint();
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
         if (this.InventoryMenu?.isWithinBounds(cursor.X, cursor.Y) != true)
         {
             return;

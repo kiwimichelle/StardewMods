@@ -212,7 +212,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
         var yOffset = 0;
         Info? infoIcon = null;
         var iconPos = Vector2.Zero;
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels());
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
 
         foreach (var infoItem in this.Config.StorageInfoHoverItems)
         {
@@ -237,7 +237,7 @@ internal sealed class StorageInfo : BaseFeature<StorageInfo>
             if (infoIcon is not null && iconPos.Equals(Vector2.Zero))
             {
                 sb.Append(CultureInfo.InvariantCulture, $"     {info.Value}");
-                iconPos = cursor + new Vector2(32, 32);
+                iconPos = new Vector2(cursor.X + 32, cursor.Y + 32);
                 valueWidth = Math.Max(valueWidth, info.ValueBounds.X + 44);
                 continue;
             }

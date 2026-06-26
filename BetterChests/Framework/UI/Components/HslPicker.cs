@@ -277,7 +277,10 @@ internal sealed class HslPicker
 
         this.chest.draw(spriteBatch, this.chestComponent.bounds.X, this.chestComponent.bounds.Y, local: true);
 
-        var isDown = this.inputHelper.IsDown(SButton.MouseLeft) || this.inputHelper.IsSuppressed(SButton.MouseLeft);
+        var isDown = this.inputHelper.IsDown(SButton.MouseLeft)
+            || this.inputHelper.IsSuppressed(SButton.MouseLeft)
+            || this.inputHelper.IsDown(SButton.ControllerA)
+            || this.inputHelper.IsSuppressed(SButton.ControllerA);
         if (!isDown)
         {
             if (this.holding is not null)
@@ -357,6 +360,33 @@ internal sealed class HslPicker
             this.colorPicker.colorSelection = selection;
             this.UpdateColor();
             return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Called by the controller input handler when the player presses A while a slider
+    /// bar is snapped. Finds which slider owns the snapped component and calls
+    /// <see cref="Slider.SelectBar"/> so the value updates without mouse involvement.
+    /// </summary>
+    /// <param name="snappedComponent">The currently snapped component.</param>
+    /// <returns><c>true</c> if a slider bar was selected; otherwise, <c>false</c>.</returns>
+    public bool TryControllerSelect(ClickableComponent snappedComponent)
+    {
+        var sliders = new[] { this.hue, this.saturation, this.lightness };
+        foreach (var slider in sliders)
+        {
+            for (var i = 0; i < slider.Bars.Length; i++)
+            {
+                if (slider.Bars[i].myID != snappedComponent.myID)
+                {
+                    continue;
+                }
+
+                slider.SelectBar(i);
+                return true;
+            }
         }
 
         return false;

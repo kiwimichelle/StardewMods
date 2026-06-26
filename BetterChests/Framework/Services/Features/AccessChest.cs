@@ -100,7 +100,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels());
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
         if (this.currentContainer.Value.bounds.Contains(cursor))
         {
             this.inputHelper.Suppress(e.Button);
@@ -253,11 +253,9 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
         var y = IClickableMenu.borderWidth / 2;
 
         this.LeftArrow.bounds.X = x;
-        this.LeftArrow.bounds.Y = y + Game1.tileSize + 20;
         this.LeftArrow.bounds.Y = y + 10;
 
         this.RightArrow.bounds.X = x + (Game1.tileSize * 2);
-        this.RightArrow.bounds.Y = y + Game1.tileSize + 20;
         this.RightArrow.bounds.Y = y + 10;
 
         var (width, height) = Game1.smallFont.MeasureString(name);
@@ -288,7 +286,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels());
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
         if (!this.bounds.Value.Contains(cursor))
         {
             return;
@@ -321,7 +319,7 @@ internal sealed class AccessChest : BaseFeature<AccessChest>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels());
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
 
         // Draw current container index
         if (this.menuHandler.Top.Container is not null && this.Config.AccessChestsShowArrows)

@@ -74,7 +74,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels());
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
         var container = this.menuHandler.CurrentMenu switch
         {
             ItemGrabMenu itemGrabMenu when itemGrabMenu.organizeButton?.bounds.Contains(cursor) == true =>
@@ -161,7 +161,7 @@ internal sealed class SortInventory : BaseFeature<SortInventory>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
         this.organizeButton.Value.tryHover(cursor.X, cursor.Y);
         this.organizeButton.Value.draw(e.SpriteBatch);
         if (!this.organizeButton.Value.bounds.Contains(cursor))

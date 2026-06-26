@@ -127,7 +127,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(e.Cursor.GetScaledScreenPixels());
+        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
         if (!itemGrabMenu.fillStacksButton.bounds.Contains(cursor))
         {
             return;
@@ -201,7 +201,7 @@ internal sealed class StashToChest : BaseFeature<StashToChest>
             return;
         }
 
-        var cursor = Utility.ModifyCoordinatesForUIScale(this.inputHelper.GetCursorPosition().GetScaledScreenPixels());
+        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
         if (!this.Config.Controls.TransferItems.IsDown() || !itemGrabMenu.fillStacksButton.bounds.Contains(cursor))
         {
             itemGrabMenu.fillStacksButton.texture = Game1.mouseCursors;

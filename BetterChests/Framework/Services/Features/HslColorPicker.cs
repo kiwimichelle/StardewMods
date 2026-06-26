@@ -224,6 +224,9 @@ internal sealed class HslColorPicker : BaseFeature<HslColorPicker>
 
         switch (e.Button)
         {
+            case SButton.ControllerA
+                when Game1.activeClickableMenu?.currentlySnappedComponent is { } snapped
+                    && this.colorPicker.Value.TryControllerSelect(snapped):
             case SButton.MouseLeft or SButton.ControllerA when this.colorPicker.Value.LeftClick(cursor):
             case SButton.MouseRight or SButton.ControllerX when this.colorPicker.Value.RightClick(cursor):
                 this.inputHelper.Suppress(e.Button);

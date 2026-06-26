@@ -120,6 +120,22 @@ internal sealed class Slider
         return this.Holding;
     }
 
+    /// <summary>
+    /// Selects the bar at the given index and immediately invokes the setter.
+    /// Used by controller navigation: when the Snappy system snaps to a bar and
+    /// the player presses A, call this instead of LeftClick so the value updates
+    /// without requiring the mouse cursor to be over the slider area.
+    /// </summary>
+    /// <param name="barIndex">The index of the bar to select (clamped to valid range).</param>
+    public void SelectBar(int barIndex)
+    {
+        barIndex = Math.Clamp(barIndex, 0, this.Bars.Length - 1);
+        this.selected = barIndex;
+        var y = this.Bars[barIndex].bounds.Center.Y;
+        this.setMethod(y.Remap(this.track, Slider.Unit));
+        this.UpdateShade();
+    }
+
     /// <summary>Updates the slider based on the mouse position.</summary>
     /// <param name="cursor">The mouse position.</param>
     public void Update(Point cursor)
