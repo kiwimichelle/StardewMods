@@ -14,7 +14,6 @@ internal sealed class TabEditor : BaseComponent
 {
     private readonly ClickableTextureComponent downArrow;
     private readonly ClickableTextureComponent upArrow;
-
     private ClickableTextureComponent icon;
     private EventHandler<IClicked>? moveDown;
     private EventHandler<IClicked>? moveUp;
@@ -41,17 +40,36 @@ internal sealed class TabEditor : BaseComponent
         this.icon = icon.Component(IconStyle.Transparent, this.bounds.X + Game1.tileSize, y);
         this.icon.bounds.Width = this.bounds.Width - (Game1.tileSize * 2);
 
+        // ====== 手柄导航网格 ID 分配 ======
+        // 规则：TabEditor 使用 TabIdBase 开始的独立 ID 段，步长 3（每个 tab 占 3 个 ID）。
+        // ID 按 tabData 的引用哈希 + 偏移分配，与外部所有已知 ID 段完全隔离：
+        //   - 原版 ItemGrabMenu 组件：约 0–1000
+        //   - MenuManager 箭头：88561, 88562
+        //   - MenuManager 图标：88571, 88572
+        //   - TabEditor 使用：从 500_000 开始，每个实例步长 3，永不碰撞
+        //
+        // 旧方案 (y * 1000) + x 用屏幕坐标计算 ID，x 为负数且随分辨率变化，
+        // 在某些分辨率下会算出 88571/88572，触发 ConfigureChest 的手柄误判。
+        var tabIdBase = 500_000 + (Math.Abs(tabData.GetHashCode()) % 100_000) * 3;
+        this.myID = tabIdBase + 2;
+
+        // 为两个箭头注入专属 ID
         this.upArrow = iconRegistry
             .Icon(VanillaIcon.ArrowUp)
             .Component(IconStyle.Transparent, x + 8, y + 8, hoverText: I18n.Ui_MoveUp_Tooltip());
 
         this.downArrow = iconRegistry
             .Icon(VanillaIcon.ArrowDown)
-            .Component(
-                IconStyle.Transparent,
-                x + width - Game1.tileSize + 8,
-                y + 8,
-                hoverText: I18n.Ui_MoveDown_Tooltip());
+            .Component(IconStyle.Transparent, x + width - Game1.tileSize + 8, y + 8, hoverText: I18n.Ui_MoveDown_Tooltip());
+
+        this.upArrow.myID = tabIdBase;
+        this.downArrow.myID = tabIdBase + 1;
+
+        // 双向网格缝合
+        this.upArrow.rightNeighborID = this.myID;     // 向上箭头右边是主体
+        this.leftNeighborID = this.upArrow.myID;       // 主体左边是向上箭头
+        this.rightNeighborID = this.downArrow.myID;   // 主体右边是向下箭头
+        this.downArrow.leftNeighborID = this.myID;     // 向下箭头左边是主体
     }
 
     /// <summary>Event triggered when the move up button is clicked.</summary>
@@ -76,6 +94,12 @@ internal sealed class TabEditor : BaseComponent
 
     /// <summary>Gets or sets the index.</summary>
     public int Index { get; set; }
+
+    /// <summary>Gets the down arrow component.</summary>
+    internal ClickableTextureComponent DownArrow => this.downArrow;
+
+    /// <summary>Gets the up arrow component.</summary>
+    internal ClickableTextureComponent UpArrow => this.upArrow;
 
     /// <inheritdoc />
     public override void Draw(SpriteBatch spriteBatch, Point cursor, Point offset)
@@ -183,16 +207,18 @@ internal sealed class TabEditor : BaseComponent
                 this.icon.bounds.Y + (IClickableMenu.borderWidth / 2f) + offset.Y),
             this.Active ? Game1.textColor : Game1.unselectedOptionColor);
 
+        // 在 TabEditor.cs 的 Draw 方法中修改箭头的绘制与悬停
         if (!this.Active)
         {
             return;
         }
 
+        // 🌟 修复：绘制时必须传入 offset，保持渲染与 cursor -= offset 后的碰撞区一致
         this.upArrow.tryHover(cursor.X, cursor.Y);
         this.downArrow.tryHover(cursor.X, cursor.Y);
 
-        this.upArrow.draw(spriteBatch, color, 1f);
-        this.downArrow.draw(spriteBatch, color, 1f);
+        this.upArrow.draw(spriteBatch, color, 1f, 0, offset.X, offset.Y);
+        this.downArrow.draw(spriteBatch, color, 1f, 0, offset.X, offset.Y);
 
         if (this.upArrow.bounds.Contains(cursor))
         {
@@ -213,8 +239,15 @@ internal sealed class TabEditor : BaseComponent
     public override ICustomComponent MoveTo(Point location)
     {
         base.MoveTo(location);
+
+        // 同步更新 X 坐标
+        this.icon.bounds.X = location.X + Game1.tileSize;
         this.icon.bounds.Y = location.Y;
+
+        this.upArrow.bounds.X = location.X + 8;
         this.upArrow.bounds.Y = location.Y + 8;
+
+        this.downArrow.bounds.X = location.X + this.bounds.Width - Game1.tileSize + 8;
         this.downArrow.bounds.Y = location.Y + 8;
         return this;
     }
@@ -222,6 +255,7 @@ internal sealed class TabEditor : BaseComponent
     /// <inheritdoc />
     public override bool TryLeftClick(Point cursor)
     {
+        // 只要光标（无论是鼠标移动过去的，还是手柄吸附过去重合的）在范围内就触发
         if (this.Active && this.downArrow.bounds.Contains(cursor))
         {
             this.moveDown.InvokeAll(this, new ClickedEventArgs(SButton.MouseLeft, cursor));
@@ -252,7 +286,7 @@ internal sealed class TabEditor : BaseComponent
             return true;
         }
 
-        return base.TryLeftClick(cursor);
+        return base.TryRightClick(cursor);
     }
 
     /// <summary>Updates the tab icon.</summary>

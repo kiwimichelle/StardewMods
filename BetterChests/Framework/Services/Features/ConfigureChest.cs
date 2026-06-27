@@ -136,7 +136,9 @@ internal sealed class ConfigureChest : BaseFeature<ConfigureChest>
 
         // Use raw scaled pixels (no additional ModifyCoordinatesForUIScale) to avoid
         // double-scaling at non-100% UI scale — same fix as MenuManager issue #117.
-        var cursor = e.Cursor.GetScaledScreenPixels().ToPoint();
+        var cursor = Utility.ModifyCoordinatesForUIScale(
+                e.Cursor.GetScaledScreenPixels())
+            .ToPoint();
 
         // For controller: currentlySnappedComponent reflects which icon the D-pad
         // has focused. Mouse and controller paths are mutually exclusive because

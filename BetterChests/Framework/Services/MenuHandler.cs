@@ -101,7 +101,12 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
             new SavedPatch(
                 AccessTools
                     .GetDeclaredConstructors(typeof(ItemGrabMenu))
-                    .Single(ctor => ctor.GetParameters().Length > 5),
+                    .Single(ctor =>
+                    {
+                        var parameters = ctor.GetParameters();
+                        return parameters.Length > 5
+                            && parameters[0].ParameterType == typeof(IList<Item>);
+                    }),
                 AccessTools.DeclaredMethod(
                     typeof(MenuHandler),
                     nameof(MenuHandler.ItemGrabMenu_constructor_transpiler)),
@@ -347,28 +352,66 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
 
     private void OnButtonPressed(ButtonPressedEventArgs e)
     {
-        // 🌟 完美修复：直接获取 SMAPI 已经缩放正确的 UI 坐标点，严禁二次调用 ModifyCoordinatesForUIScale
-        var uiMousePos = e.Cursor.GetScaledScreenPixels().ToPoint();
+        // OnButtonPressed 是 SMAPI 事件回调，处于非 UI 模式。
+        // GetScaledScreenPixels() 此时返回物理像素而非 UI 坐标，
+        // 必须用 ModifyCoordinatesForUIScale 强制转为 UI 坐标，
+        // 与 bounds 和 UiToolkit.Cursor 保持同一坐标系。
+        var uiMousePos = Utility.ModifyCoordinatesForUIScale(
+            e.Cursor.GetScaledScreenPixels()).ToPoint();
         var baseMenu = Game1.activeClickableMenu?.GetChildMenu() as BaseMenu;
 
         switch (e.Button)
         {
             case SButton.MouseLeft or SButton.ControllerA:
-                // Child menus
+                // Child menus（BaseMenu 子菜单）
                 if (baseMenu is not null)
                 {
-                    baseMenu.receiveLeftClick(uiMousePos.X, uiMousePos.Y);
+                    if (e.Button == SButton.ControllerA)
+                    {
+                        // 手柄路径：用 currentlySnappedComponent 的 bounds 中心作为点击坐标，
+                        // 而不是鼠标停留位置。手柄焦点吸附到哪个组件，就点击那个组件的中心。
+                        // 否则鼠标停在屏幕任意位置时，手柄确认键会触发鼠标所在位置的组件。
+                        var snapped = Game1.activeClickableMenu?.currentlySnappedComponent;
+                        var clickPos = snapped is not null
+                            ? snapped.bounds.Center
+                            : uiMousePos;
+                        baseMenu.receiveLeftClick(clickPos.X, clickPos.Y);
+                    }
+                    else
+                    {
+                        // 鼠标路径：直接用鼠标坐标
+                        baseMenu.receiveLeftClick(uiMousePos.X, uiMousePos.Y);
+                    }
+
                     this.inputHelper.Suppress(e.Button);
                     return;
                 }
 
-                // Components
-                // 🌟 完美修复：Contains 和 TryLeftClick 全部统一使用单次缩放的 uiMousePos
-                if (this.components.Value
-                    .Where(c => c.bounds.Contains(uiMousePos))
-                    .Any(component => component.TryLeftClick(uiMousePos)))
+                // Components（侧边栏等自定义组件）
+                if (e.Button == SButton.ControllerA)
                 {
-                    this.inputHelper.Suppress(e.Button);
+                    // 手柄路径：找到 snapped 组件直接触发，不依赖鼠标坐标
+                    var snapped = Game1.activeClickableMenu?.currentlySnappedComponent;
+                    if (snapped is not null)
+                    {
+                        var clickPos = snapped.bounds.Center;
+                        if (this.components.Value
+                            .Where(c => c.bounds.Contains(clickPos))
+                            .Any(component => component.TryLeftClick(clickPos)))
+                        {
+                            this.inputHelper.Suppress(e.Button);
+                        }
+                    }
+                }
+                else
+                {
+                    // 鼠标路径：用鼠标坐标
+                    if (this.components.Value
+                        .Where(c => c.bounds.Contains(uiMousePos))
+                        .Any(component => component.TryLeftClick(uiMousePos)))
+                    {
+                        this.inputHelper.Suppress(e.Button);
+                    }
                 }
 
                 return;
@@ -377,17 +420,46 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
                 // Child menus
                 if (baseMenu is not null)
                 {
-                    baseMenu.receiveRightClick(uiMousePos.X, uiMousePos.Y);
+                    if (e.Button == SButton.ControllerB)
+                    {
+                        var snapped = Game1.activeClickableMenu?.currentlySnappedComponent;
+                        var clickPos = snapped is not null
+                            ? snapped.bounds.Center
+                            : uiMousePos;
+                        baseMenu.receiveRightClick(clickPos.X, clickPos.Y);
+                    }
+                    else
+                    {
+                        baseMenu.receiveRightClick(uiMousePos.X, uiMousePos.Y);
+                    }
+
                     this.inputHelper.Suppress(e.Button);
                     return;
                 }
 
                 // Components
-                if (this.components.Value
-                    .Where(c => c.bounds.Contains(uiMousePos))
-                    .Any(component => component.TryRightClick(uiMousePos)))
+                if (e.Button == SButton.ControllerB)
                 {
-                    this.inputHelper.Suppress(e.Button);
+                    var snapped = Game1.activeClickableMenu?.currentlySnappedComponent;
+                    if (snapped is not null)
+                    {
+                        var clickPos = snapped.bounds.Center;
+                        if (this.components.Value
+                            .Where(c => c.bounds.Contains(clickPos))
+                            .Any(component => component.TryRightClick(clickPos)))
+                        {
+                            this.inputHelper.Suppress(e.Button);
+                        }
+                    }
+                }
+                else
+                {
+                    if (this.components.Value
+                        .Where(c => c.bounds.Contains(uiMousePos))
+                        .Any(component => component.TryRightClick(uiMousePos)))
+                    {
+                        this.inputHelper.Suppress(e.Button);
+                    }
                 }
 
                 return;
@@ -404,157 +476,64 @@ internal sealed class MenuHandler : BaseService<MenuHandler>
     [Priority(int.MinValue)]
     private void OnRenderedActiveMenu(RenderedActiveMenuEventArgs e)
     {
-        // 🌟 完美修复：剥离二次缩放
-        var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
-        switch (this.CurrentMenu)
-        {
-            case ItemGrabMenu itemGrabMenu:
-                // Draw overlay
-                this.Top.Draw(e.SpriteBatch, cursor);
-                this.Bottom.Draw(e.SpriteBatch, cursor);
+    // 获取 SMAPI 转换出的、不受二次缩放干扰的精确 UI 像素点坐标
+    var cursor = this.inputHelper.GetCursorPosition().GetScaledScreenPixels().ToPoint();
+    switch (this.CurrentMenu)
+    {
+        case ItemGrabMenu itemGrabMenu:
+            // Draw overlay
+            this.Top.Draw(e.SpriteBatch, cursor);
+            this.Bottom.Draw(e.SpriteBatch, cursor);
 
-                // Draw components
-                foreach (var component in this.components.Value)
-                {
-                    component.Draw(e.SpriteBatch, cursor, Point.Zero);
-                }
+            // Draw components (在这里画你的组件)
+            foreach (var component in this.components.Value)
+            {
+                component.Draw(e.SpriteBatch, cursor, Point.Zero);
+            }
 
-                // Redraw foreground
-                if (this.focus.Value is null)
-                {
-                    if (itemGrabMenu.hoverText != null
-                        && (itemGrabMenu.hoveredItem == null || itemGrabMenu.ItemsToGrabMenu == null))
-                    {
-                        if (itemGrabMenu.hoverAmount > 0)
-                        {
-                            IClickableMenu.drawToolTip(
-                                e.SpriteBatch,
-                                itemGrabMenu.hoverText,
-                                string.Empty,
-                                null,
-                                true,
-                                -1,
-                                0,
-                                null,
-                                -1,
-                                null,
-                                itemGrabMenu.hoverAmount);
-                        }
-                        else
-                        {
-                            IClickableMenu.drawHoverText(e.SpriteBatch, itemGrabMenu.hoverText, Game1.smallFont);
-                        }
-                    }
+            // 🔥 完美修复：移除原本在这里对原版 hoverText / hoveredItem 的 drawHoverText 手动调用！
+            // 原版菜单生命周期会自动画出来，不需要在生命周期外二次渲染造成重影。
 
-                    if (itemGrabMenu.hoveredItem != null)
-                    {
-                        IClickableMenu.drawToolTip(
-                            e.SpriteBatch,
-                            itemGrabMenu.hoveredItem.getDescription(),
-                            itemGrabMenu.hoveredItem.DisplayName,
-                            itemGrabMenu.hoveredItem,
-                            itemGrabMenu.heldItem != null);
-                    }
-                    else if (itemGrabMenu.hoveredItem != null && itemGrabMenu.ItemsToGrabMenu != null)
-                    {
-                        IClickableMenu.drawToolTip(
-                            e.SpriteBatch,
-                            itemGrabMenu.ItemsToGrabMenu.descriptionText,
-                            itemGrabMenu.ItemsToGrabMenu.descriptionTitle,
-                            itemGrabMenu.hoveredItem,
-                            itemGrabMenu.heldItem != null);
-                    }
+            // 仅在手上有抓取物品时，修正其图层显示在最上层
+            if (this.focus.Value is null && itemGrabMenu.heldItem != null)
+            {
+                itemGrabMenu.heldItem.drawInMenu(
+                    e.SpriteBatch,
+                    new Vector2(cursor.X + 8, cursor.Y + 8),
+                    1f);
+            }
+            break;
 
-                    itemGrabMenu.heldItem?.drawInMenu(
-                        e.SpriteBatch,
-                        new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
-                        1f);
-                }
+        case InventoryPage inventoryPage:
+            this.Top.Draw(e.SpriteBatch, cursor);
+            this.Bottom.Draw(e.SpriteBatch, cursor);
+            break;
 
-                break;
+        case ShopMenu shopMenu:
+            this.Top.Draw(e.SpriteBatch, cursor);
+            this.Bottom.Draw(e.SpriteBatch, cursor);
 
-            case InventoryPage inventoryPage:
-                // Draw overlay
-                this.Top.Draw(e.SpriteBatch, cursor);
-                this.Bottom.Draw(e.SpriteBatch, cursor);
+            if (this.focus.Value is null && shopMenu.heldItem != null)
+            {
+                shopMenu.heldItem.drawInMenu(
+                    e.SpriteBatch,
+                    new Vector2(cursor.X + 8, cursor.Y + 8),
+                    1f,
+                    1f,
+                    0.9f,
+                    StackDrawType.Draw,
+                    Color.White,
+                    true);
+            }
+            break;
 
-                // Redraw foreground
-                if (this.focus.Value is null && !string.IsNullOrEmpty(inventoryPage.hoverText))
-                {
-                    if (inventoryPage.hoverAmount > 0)
-                    {
-                        IClickableMenu.drawToolTip(
-                            e.SpriteBatch,
-                            inventoryPage.hoverText,
-                            inventoryPage.hoverTitle,
-                            null,
-                            true,
-                            -1,
-                            0,
-                            null,
-                            -1,
-                            null,
-                            inventoryPage.hoverAmount);
-                    }
-                    else
-                    {
-                        IClickableMenu.drawToolTip(
-                            e.SpriteBatch,
-                            inventoryPage.hoverText,
-                            inventoryPage.hoverTitle,
-                            inventoryPage.hoveredItem,
-                            Game1.player.CursorSlotItem is not null);
-                    }
-                }
-
-                break;
-
-            case ShopMenu shopMenu:
-                // Draw overlay
-                this.Top.Draw(e.SpriteBatch, cursor);
-                this.Bottom.Draw(e.SpriteBatch, cursor);
-
-                // Redraw foreground
-                if (this.focus.Value is null)
-                {
-                    if (shopMenu.hoveredItem?.IsRecipe ?? false)
-                    {
-                        shopMenu.heldItem?.drawInMenu(
-                            e.SpriteBatch,
-                            new Vector2(Game1.getOldMouseX() + 8, Game1.getOldMouseY() + 8),
-                            1f,
-                            1f,
-                            0.9f,
-                            StackDrawType.Draw,
-                            Color.White,
-                            true);
-                    }
-                    else
-                    {
-                        IClickableMenu.drawToolTip(
-                            e.SpriteBatch,
-                            shopMenu.hoverText,
-                            shopMenu.boldTitleText,
-                            shopMenu.hoveredItem as Item,
-                            shopMenu.heldItem != null,
-                            -1,
-                            shopMenu.currency,
-                            null,
-                            -1,
-                            null,
-                            shopMenu.hoverPrice > 0 ? shopMenu.hoverPrice : -1);
-                    }
-                }
-
-                break;
-
-            default:
-                return;
-        }
-
-        Game1.mouseCursorTransparency = 1f;
-        Game1.activeClickableMenu.drawMouse(e.SpriteBatch);
+        default:
+            return;
     }
+
+    Game1.mouseCursorTransparency = 1f;
+    Game1.activeClickableMenu.drawMouse(e.SpriteBatch);
+}
 
     [EventPriority((EventPriority)int.MaxValue)]
     private void OnRenderingActiveMenu(object? sender, RenderingActiveMenuEventArgs e)

@@ -29,8 +29,16 @@ internal sealed class UiToolkit
         UiToolkit.Reflection = reflectionHelper;
     }
 
-    /// <summary>Gets the cursor position.</summary>
-    public static Point Cursor => Utility.ModifyCoordinatesForUIScale(UiToolkit.Input.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
+    /// <summary>Gets the cursor position in UI coordinates.</summary>
+    /// <remarks>
+    /// GetScaledScreenPixels() 返回的是适配当前缩放模式的屏幕坐标，但在非 UI 模式下
+    /// （如 SMAPI 事件回调）返回的是物理像素，并非 UI 坐标。
+    /// Utility.ModifyCoordinatesForUIScale 强制将坐标转换到 UI 坐标系，
+    /// 与 bounds（始终在 UI 坐标系下布局）保持一致。
+    /// 参考：https://stardewvalleywiki.com/Modding:Modeler_Guide/APIs/Input
+    /// </remarks>
+    public static Point Cursor => Utility.ModifyCoordinatesForUIScale(
+        UiToolkit.Input.GetCursorPosition().GetScaledScreenPixels()).ToPoint();
 
     /// <summary>Gets the input helper.</summary>
     public static IInputHelper Input { get; private set; } = null!;

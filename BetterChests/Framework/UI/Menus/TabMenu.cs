@@ -1,12 +1,12 @@
 namespace StardewMods.BetterChests.Framework.UI.Menus;
 
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewMods.BetterChests.Framework.Enums;
 using StardewMods.BetterChests.Framework.Interfaces;
 using StardewMods.BetterChests.Framework.Models;
 using StardewMods.BetterChests.Framework.Services;
 using StardewMods.BetterChests.Framework.UI.Components;
-using StardewMods.Common.Enums;
 using StardewMods.Common.Services.Integrations.FauxCore;
 using StardewMods.Common.UI.Menus;
 using StardewValley.Menus;
@@ -16,7 +16,6 @@ internal sealed class TabMenu : SearchMenu
 {
     private readonly ClickableTextureComponent addButton;
     private readonly IModConfig config;
-    private readonly ConfigManager configManager;
     private readonly ClickableTextureComponent copyButton;
     private readonly ClickableTextureComponent editButton;
     private readonly IIconRegistry iconRegistry;
@@ -24,6 +23,7 @@ internal sealed class TabMenu : SearchMenu
     private readonly ClickableTextureComponent pasteButton;
     private readonly ClickableTextureComponent removeButton;
     private readonly ClickableTextureComponent saveButton;
+    private readonly List<TabEditor> tabs = new();
 
     private TabEditor? activeTab;
 
@@ -34,9 +34,8 @@ internal sealed class TabMenu : SearchMenu
     public TabMenu(ConfigManager configManager, IExpressionHandler expressionHandler, IIconRegistry iconRegistry)
         : base(expressionHandler, iconRegistry, string.Empty)
     {
-        this.configManager = configManager;
         this.iconRegistry = iconRegistry;
-        this.config = this.configManager.GetNew();
+        this.config = configManager.GetNew();
 
         this.saveButton = iconRegistry
             .Icon(InternalIcon.Save)
@@ -93,14 +92,6 @@ internal sealed class TabMenu : SearchMenu
                 this.xPositionOnScreen + this.width + 4,
                 this.yPositionOnScreen + this.height - Game1.tileSize - (IClickableMenu.borderWidth / 2));
 
-        this.allClickableComponents.Add(this.saveButton);
-        this.allClickableComponents.Add(this.copyButton);
-        this.allClickableComponents.Add(this.pasteButton);
-        this.allClickableComponents.Add(this.editButton);
-        this.allClickableComponents.Add(this.addButton);
-        this.allClickableComponents.Add(this.removeButton);
-        this.allClickableComponents.Add(this.okButton);
-
         for (var i = this.config.InventoryTabList.Count - 1; i >= 0; i--)
         {
             if (!this.iconRegistry.TryGetIcon(this.config.InventoryTabList[i].Icon, out _))
@@ -130,21 +121,78 @@ internal sealed class TabMenu : SearchMenu
             tabIcon.MoveDown += this.OnMoveDown;
             tabIcon.MoveUp += this.OnMoveUp;
 
-            this.allClickableComponents.Add(tabIcon);
+            this.tabs.Add(tabIcon);
 
-            if (i != 0)
+            if (i == 0)
             {
-                continue;
+                this.activeTab = tabIcon;
+                this.SetSearchText(tabData.SearchTerm, true);
             }
-
-            this.activeTab = tabIcon;
-            this.SetSearchText(tabData.SearchTerm, true);
         }
+
+        this.populateClickableComponentList();
+    }
+
+    /// <summary>重写 1.6 菜单的生命周期方法，动态且安全地缝合手柄导航网格.</summary>
+    public override void populateClickableComponentList()
+    {
+        base.populateClickableComponentList();
+
+        // 确保右侧功能键全部加入手柄检测队列
+        this.allClickableComponents.Add(this.saveButton);
+        this.allClickableComponents.Add(this.copyButton);
+        this.allClickableComponents.Add(this.pasteButton);
+        this.allClickableComponents.Add(this.editButton);
+        this.allClickableComponents.Add(this.addButton);
+        this.allClickableComponents.Add(this.removeButton);
+        this.allClickableComponents.Add(this.okButton);
+
+        foreach (var tab in this.tabs)
+        {
+            this.allClickableComponents.Add(tab);
+            this.allClickableComponents.Add(tab.UpArrow);
+            this.allClickableComponents.Add(tab.DownArrow);
+        }
+    }
+
+    /// <summary>当游戏窗口大小或 UI 缩放改变时，重新计算并对齐所有组件坐标.</summary>
+    public override void gameWindowSizeChanged(Rectangle oldBounds, Rectangle newBounds)
+    {
+        base.gameWindowSizeChanged(oldBounds, newBounds);
+
+        // 1. 重新同步右侧按钮的绝对坐标
+        this.saveButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.saveButton.bounds.Y = this.yPositionOnScreen + Game1.tileSize + 16;
+        this.copyButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.copyButton.bounds.Y = this.yPositionOnScreen + ((Game1.tileSize + 16) * 2);
+        this.pasteButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.pasteButton.bounds.Y = this.yPositionOnScreen + ((Game1.tileSize + 16) * 3);
+        this.editButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.editButton.bounds.Y = this.yPositionOnScreen + ((Game1.tileSize + 16) * 4);
+        this.addButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.addButton.bounds.Y = this.yPositionOnScreen + ((Game1.tileSize + 16) * 5);
+        this.removeButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.removeButton.bounds.Y = this.yPositionOnScreen + ((Game1.tileSize + 16) * 6);
+        this.okButton.bounds.X = this.xPositionOnScreen + this.width + 4;
+        this.okButton.bounds.Y = this.yPositionOnScreen + this.height - Game1.tileSize - (IClickableMenu.borderWidth / 2);
+
+        // 2. 重新迭代定位左侧的所有 Tabs
+        for (var i = 0; i < this.tabs.Count; i++)
+        {
+            this.tabs[i].MoveTo(new Point(
+                this.xPositionOnScreen - (Game1.tileSize * 2) - 256,
+                this.yPositionOnScreen + (Game1.tileSize * (i + 1)) + 16));
+        }
+
+        // 3. 重新构建导航网格
+        this.populateClickableComponentList();
     }
 
     /// <inheritdoc />
     public override bool TryLeftClick(Point cursor)
     {
+        Game1.addHUDMessage(new HUDMessage($"cursor={cursor} save={this.saveButton.bounds.Contains(cursor)}", HUDMessage.error_type));
+
         if (this.saveButton.bounds.Contains(cursor) && this.readyToClose())
         {
             Game1.playSound("drumkit6");
@@ -212,8 +260,10 @@ internal sealed class TabMenu : SearchMenu
             tabIcon.MoveDown += this.OnMoveDown;
             tabIcon.MoveUp += this.OnMoveUp;
 
-            this.allClickableComponents.Add(tabIcon);
+            this.tabs.Add(tabIcon);
             this.config.InventoryTabList.Add(tabData);
+
+            this.populateClickableComponentList();
             return true;
         }
 
@@ -223,12 +273,12 @@ internal sealed class TabMenu : SearchMenu
             if (this.activeTab is not null)
             {
                 this.config.InventoryTabList.RemoveAt(this.activeTab.Index);
-                for (var index = this.allClickableComponents.IndexOf(this.activeTab);
-                    index < this.allClickableComponents.Count - 1;
-                    index++)
+
+                var idx = this.tabs.IndexOf(this.activeTab);
+                for (var index = idx; index < this.tabs.Count - 1; index++)
                 {
-                    var current = (TabEditor)this.allClickableComponents[index];
-                    var next = (TabEditor)this.allClickableComponents[index + 1];
+                    var current = this.tabs[index];
+                    var next = this.tabs[index + 1];
                     (current.Index, next.Index) = (next.Index, current.Index);
 
                     var currentY = current.bounds.Y;
@@ -237,12 +287,13 @@ internal sealed class TabMenu : SearchMenu
                     current.MoveTo(new Point(current.bounds.X, nextY));
                     next.MoveTo(new Point(next.bounds.X, currentY));
 
-                    (this.allClickableComponents[index], this.allClickableComponents[index + 1]) = (
-                        this.allClickableComponents[index + 1], this.allClickableComponents[index]);
+                    (this.tabs[index], this.tabs[index + 1]) = (this.tabs[index + 1], this.tabs[index]);
                 }
 
-                this.allClickableComponents.RemoveAt(this.allClickableComponents.Count - 1);
+                this.tabs.RemoveAt(this.tabs.Count - 1);
                 this.activeTab = null;
+
+                this.populateClickableComponentList();
             }
 
             return true;
@@ -253,6 +304,13 @@ internal sealed class TabMenu : SearchMenu
             Game1.playSound("bigDeSelect");
             this.exitThisMenuNoSound();
             return true;
+        }
+        foreach (var tab in this.tabs)
+        {
+            if (tab.TryLeftClick(cursor))
+            {
+                return true;
+            }
         }
 
         return base.TryLeftClick(cursor);
@@ -305,9 +363,9 @@ internal sealed class TabMenu : SearchMenu
         (this.config.InventoryTabList[tabEditor.Index], this.config.InventoryTabList[tabEditor.Index + 1]) = (
             this.config.InventoryTabList[tabEditor.Index + 1], this.config.InventoryTabList[tabEditor.Index]);
 
-        var index = this.allClickableComponents.IndexOf(tabEditor);
-        var current = (TabEditor)this.allClickableComponents[index];
-        var next = (TabEditor)this.allClickableComponents[index + 1];
+        var index = this.tabs.IndexOf(tabEditor);
+        var current = this.tabs[index];
+        var next = this.tabs[index + 1];
         (current.Index, next.Index) = (next.Index, current.Index);
 
         var currentY = current.bounds.Y;
@@ -316,16 +374,14 @@ internal sealed class TabMenu : SearchMenu
         current.MoveTo(new Point(current.bounds.X, nextY));
         next.MoveTo(new Point(next.bounds.X, currentY));
 
-        (this.allClickableComponents[index], this.allClickableComponents[index + 1]) = (
-            this.allClickableComponents[index + 1], this.allClickableComponents[index]);
+        (this.tabs[index], this.tabs[index + 1]) = (this.tabs[index + 1], this.tabs[index]);
+
+        this.populateClickableComponentList();
     }
 
     private void OnMoveUp(object? sender, IClicked e)
     {
-        if (sender is not TabEditor
-            {
-                Index: > 0,
-            } tabEditor)
+        if (sender is not TabEditor { Index: > 0 } tabEditor)
         {
             return;
         }
@@ -334,9 +390,9 @@ internal sealed class TabMenu : SearchMenu
         (this.config.InventoryTabList[tabEditor.Index], this.config.InventoryTabList[tabEditor.Index - 1]) = (
             this.config.InventoryTabList[tabEditor.Index - 1], this.config.InventoryTabList[tabEditor.Index]);
 
-        var index = this.allClickableComponents.IndexOf(tabEditor);
-        var current = (TabEditor)this.allClickableComponents[index];
-        var previous = (TabEditor)this.allClickableComponents[index - 1];
+        var index = this.tabs.IndexOf(tabEditor);
+        var current = this.tabs[index];
+        var previous = this.tabs[index - 1];
         (current.Index, previous.Index) = (previous.Index, current.Index);
 
         var currentY = current.bounds.Y;
@@ -345,7 +401,8 @@ internal sealed class TabMenu : SearchMenu
         current.MoveTo(new Point(current.bounds.X, previousY));
         previous.MoveTo(new Point(previous.bounds.X, currentY));
 
-        (this.allClickableComponents[index], this.allClickableComponents[index - 1]) = (
-            this.allClickableComponents[index - 1], this.allClickableComponents[index]);
+        (this.tabs[index], this.tabs[index - 1]) = (this.tabs[index - 1], this.tabs[index]);
+
+        this.populateClickableComponentList();
     }
 }
